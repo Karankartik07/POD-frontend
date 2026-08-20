@@ -1,0 +1,759 @@
+/*!*****************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/app/globals.css ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************/
+@import url("https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Jost", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  max-width: 1920px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img {
+  background-color: #eff0f1;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+@media only screen and (max-width: 1025px) {
+  a {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+  }
+
+  div {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+  }
+}
+
+/*!******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/Components/Footer/Footer.css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************/
+.footer {
+  padding: 30px 160px;
+  background-color: #e4e4e4;
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+}
+
+.footer__container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 50px;
+  padding-top: 50px;
+}
+
+.footer_left {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.footer_logo_container {
+  margin-bottom: 20px;
+}
+
+.footer_logo_container img {
+  height: 45px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  background: none !important;
+}
+
+.footer_left p {
+  font-size: 14px;
+}
+
+.footer_address {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.footer_address strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.social_links {
+  display: flex;
+  gap: 30px;
+  width: 240px;
+}
+
+.social_links svg {
+  cursor: pointer;
+}
+
+.footer_content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.footer_content h5 {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.links_container ul {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.links_container ul li {
+  list-style-type: none;
+}
+
+.links_container ul li a {
+  color: black;
+  text-decoration: none;
+  font-size: 14px;
+  position: relative;
+}
+
+.links_container ul li a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: black;
+  transition: width 0.3s ease-out;
+}
+
+.links_container ul li a:hover::after {
+  width: 80%;
+  transition-delay: 0.1s;
+}
+
+.footer_right {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.footer_right h5 {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.footer_right p {
+  font-size: 14px;
+}
+
+.footer_right form {
+  display: flex;
+  margin-top: -10px;
+}
+
+.footer_right form input {
+  width: 100%;
+  padding: 19px 20px;
+  border: none;
+  outline: none;
+}
+
+.footer_right form button {
+  padding: 10px 20px;
+  background-color: white;
+  color: black;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.footer_right h6 {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paymentIconContainer {
+  height: 30px;
+  width: 250px;
+  margin-top: -10px;
+}
+
+.paymentIconContainer img {
+  width: 100%;
+  height: 100%;
+  background: none !important;
+}
+
+.footer_bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  border-top: 1px solid #cfcdcd;
+  padding-top: 30px;
+  gap: 20px;
+}
+
+.footerLangCurrency {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footerLang {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.footerLang select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+.footerCurrency {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.footerCurrency select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+@media screen and (max-width: 1210px) {
+  .footer {
+    padding: 50px 60px;
+  }
+  .footer__container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .footer_left {
+    gap: 10px;
+  }
+  .footer_content {
+    gap: 20px;
+  }
+  .footer_right {
+    gap: 20px;
+  }
+  .paymentIconContainer {
+    width: 200px;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .footer {
+    padding: 20px 15px;
+    gap: 30px;
+  }
+  .footer__container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .footer_left {
+    gap: 10px;
+  }
+  .footer_content {
+    gap: 20px;
+  }
+  .footer_right {
+    gap: 20px;
+  }
+  .paymentIconContainer {
+    width: 150px;
+  }
+  .paymentIconContainer img {
+    height: 40px;
+    width: 320px;
+  }
+  .footerLangCurrency {
+    gap: 10px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .paymentIconContainer img {
+    height: 35px;
+    width: 280px;
+  }
+}
+
+/*!******************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/Components/Header/Navbar.css ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************/
+.navBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 35px 160px;
+  position: relative;
+  z-index: 10;
+  background-color: white;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 10px 33px rgba(0, 0, 0, 0.1);
+}
+
+.logoLinkContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoContainer img {
+  height: 48px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  background: none !important;
+}
+
+.linkContainer ul {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.linkContainer ul li {
+  list-style-type: none;
+}
+
+.linkContainer ul li a {
+  text-decoration: none;
+  color: #1b1b1b;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+}
+
+.linkContainer ul li a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: #1b1b1b;
+  transition: width 0.3s ease-out;
+}
+
+.linkContainer ul li a:hover::after {
+  width: 60%;
+  transition-delay: 0.1s;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 35px;
+}
+
+.iconContainer a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: black;
+}
+
+.mobile-nav {
+  display: none;
+}
+
+@media screen and (max-width: 1210px) {
+  .logoContainer img {
+    height: 38px;
+    max-width: 170px;
+  }
+
+  .navBar {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    position: relative;
+    z-index: 10;
+    background-color: white;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .mobile-nav {
+    padding: 20px 15px;
+  }
+}
+
+/* Mobile Menu */
+
+.mobile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  height: 100vh;
+  background-color: #fff;
+  position: absolute;
+  top: 74px;
+  right: 0;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+  z-index: 9;
+  border-top: 1px solid #e4e4e4;
+}
+
+.mobile-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  overflow: hidden;
+}
+
+.mobile-menuSearchBar {
+  padding: 20px;
+}
+
+.mobile-menuSearchBarContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border: 1px solid #e4e4e4;
+  border-radius: 5px;
+}
+
+.mobile-menuSearchBarContainer input {
+  border: none;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+}
+
+.mobile-menuSearchBarContainer a {
+  text-decoration: none;
+  color: black;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-menuList ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.mobile-menuList ul li {
+  padding: 10px 20px;
+}
+
+.mobile-menuList ul li a {
+  text-decoration: none;
+  color: #1b1b1b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mobile-menuFooter {
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.mobile-menuFooterLogin a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: black;
+}
+
+.mobile-menuFooterLogin p {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mobile-menuFooterLangCurrency {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.footerLangCurrency {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.mobile-menuFooterLang {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.mobile-menuFooterLang select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+.mobile-menuFooterCurrency {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.mobile-menuFooterCurrency select {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 14px;
+}
+
+.mobile-menuSocial_links {
+  display: flex;
+  gap: 30px;
+  width: 240px;
+  margin-bottom: 20px;
+}
+
+.mobile-menuSocial_links svg {
+  cursor: pointer;
+}
+
+/*!**********************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/Components/PopupBanner/Popup.css ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************************/
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 1;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.popup-content {
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #e4e2dc;
+  display: flex;
+  width: 80%;
+  max-width: 900px;
+  position: relative;
+  transform: translateY(-50%);
+  opacity: 0;
+  animation: slideIn 0.5s forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.popup-content.fade-out {
+  animation: slideOut 0.5s forwards, fadeOut 0.5s forwards;
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.popup-left {
+  width: 50%;
+}
+
+.popup-left img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px 0px 0px 5px;
+}
+
+.popup-right {
+  width: 50%;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.popup-right h2 {
+  margin-top: 0;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.popup-right p {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.popup-right form {
+  display: flex;
+  border: 2px solid #e4e2dc;
+  margin-top: 20px;
+}
+
+.popup-right input {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  outline: none;
+}
+
+.popup-right button {
+  background: #fff;
+  color: rgb(0, 0, 0);
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+@media screen and (max-width: 450px) {
+  .popup-left {
+    display: none;
+  }
+
+  .popup-right {
+    width: 100%;
+  }
+
+  .popup-right h2 {
+    font-size: 22px;
+  }
+
+  .popup-right p {
+    font-size: 14px;
+  }
+
+  .popup-right button {
+    padding: 15px;
+  }
+
+  .popup-right form {
+    margin-top: 10px;
+  }
+
+  .close-button {
+    top: 10px;
+    right: 15px;
+  }
+
+  .popup-content {
+    width: 90%;
+  }
+}
+
+/*!*****************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[12].use[3]!./src/Components/ScrollButton/ScrollToTop.css ***!
+  \*****************************************************************************************************************************************************************************************************************************************************************************************/
+.top-to-btm {
+  position: relative;
+  cursor: pointer;
+}
+
+.iconStyle {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 20;
+  width: 45px;
+  height: 45px;
+  background-color: #eeeeee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
