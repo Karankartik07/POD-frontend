@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import "./Popup.css";
 
-import popupImg from "../../Assets/newsletter-popup.jpg";
+const popupImg = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230548/pod_assets/newsletter-popup.jpg";
 
 const Popup = () => {
   const [showPopup, setShowPopup] = useState(true);

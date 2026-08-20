@@ -1,17 +1,17 @@
 import React from "react";
 import "./Instagram.css";
-import insta1 from "../../../Assets/Instagram/insta1.jpg";
-import insta2 from "../../../Assets/Instagram/insta2.jpg";
-import insta3 from "../../../Assets/Instagram/insta3.jpg";
-import insta4 from "../../../Assets/Instagram/insta4.jpg";
-import insta5 from "../../../Assets/Instagram/insta5.jpg";
-import insta6 from "../../../Assets/Instagram/insta6.jpg";
-import insta7 from "../../../Assets/Instagram/insta7.jpg";
-import insta8 from "../../../Assets/Instagram/insta8.jpg";
-import insta9 from "../../../Assets/Instagram/insta9.jpg";
-import insta10 from "../../../Assets/Instagram/insta10.jpg";
-import insta11 from "../../../Assets/Instagram/insta11.jpg";
-import insta12 from "../../../Assets/Instagram/insta12.jpg";
+const insta1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230475/pod_assets/Instagram/insta1.jpg";
+const insta2 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230478/pod_assets/Instagram/insta2.jpg";
+const insta3 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230479/pod_assets/Instagram/insta3.jpg";
+const insta4 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230480/pod_assets/Instagram/insta4.jpg";
+const insta5 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230481/pod_assets/Instagram/insta5.jpg";
+const insta6 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230482/pod_assets/Instagram/insta6.jpg";
+const insta7 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230483/pod_assets/Instagram/insta7.jpg";
+const insta8 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230484/pod_assets/Instagram/insta8.jpg";
+const insta9 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230484/pod_assets/Instagram/insta9.jpg";
+const insta10 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230476/pod_assets/Instagram/insta10.jpg";
+const insta11 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230477/pod_assets/Instagram/insta11.jpg";
+const insta12 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230478/pod_assets/Instagram/insta12.jpg";
 
 const Instagram = () => {
   const images = [

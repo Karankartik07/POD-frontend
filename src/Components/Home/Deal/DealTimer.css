@@ -4,7 +4,7 @@
 
 .dealTimer {
   background-color: #ebebeb;
-  background-image: url(../../../Assets/Deal/dealbg.jpg);
+  background-image: url("https://res.cloudinary.com/usn1yap2/image/upload/v1787230474/pod_assets/Deal/dealbg.jpg");
   height: 500px;
   background-size: cover;
   padding: 0 160px;

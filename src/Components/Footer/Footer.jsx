@@ -2,8 +2,8 @@
 
 import React from "react";
 import "./Footer.css";
-import logo from "../../Assets/logo.png";
-import paymentIcon from "../../Assets/paymentIcon.png";
+const logo = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230546/pod_assets/logo.png";
+const paymentIcon = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230550/pod_assets/paymentIcon.png";
 import { FaFacebookF } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FaInstagram } from "react-icons/fa";

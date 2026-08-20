@@ -1,6 +1,6 @@
 .heroMain {
   background-color: #f4e5e0;
-  background-image: url("../../../Assets/slideshow-pattern.png");
+  background-image: url('https://res.cloudinary.com/usn1yap2/image/upload/v1787230570/pod_assets/slideshow-pattern.png');
   background-size: cover;
   padding: 0 160px;
   display: flex;

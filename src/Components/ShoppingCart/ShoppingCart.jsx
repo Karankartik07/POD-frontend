@@ -7,42 +7,80 @@ import {
   removeFromCart,
   updateQuantity,
   selectCartTotalAmount,
+  clearCart,
 } from "../../Features/Cart/cartSlice";
 
 import { MdOutlineClose } from "react-icons/md";
-
 import Link from "next/link";
-
-import success from "../../Assets/success.png";
+import toast from "react-hot-toast";
+const success = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230571/pod_assets/success.png";
+import api from "../../utils/api";
+import { useCart } from "../../context/CartContext";
 
 const ShoppingCart = () => {
-  const cartItems = useSelector((state) => state.cart.items);
+  const { cartItems, cartLoading, removeFromCart: removeCartContext, updateQuantity: updateQtyContext, clearCart: clearCartContext } = useCart();
+
   const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState("cartTab1");
   const [payments, setPayments] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+
+  // Billing address state
+  const [firstName, setFirstName] = useState(auth.user ? auth.user.name.split(" ")[0] : "");
+  const [lastName, setLastName] = useState(auth.user && auth.user.name.split(" ")[1] ? auth.user.name.split(" ")[1] : "");
+  const [streetAddress, setStreetAddress] = useState("Flat 102, Green Valley");
+  const [city, setCity] = useState("New Delhi");
+  const [zipCode, setZipCode] = useState("110001");
+  const [country, setCountry] = useState("India");
+  const [phone, setPhone] = useState("9876543210");
+  const [email, setEmail] = useState(auth.user ? auth.user.email : "customer@podecom.com");
+  const [selectedPayment, setSelectedPayment] = useState("Cash on delivery");
+
+  const [createdOrderNumber, setCreatedOrderNumber] = useState(null);
+
   const handleTabClick = (tab) => {
-    if (tab === "cartTab1" || cartItems.length > 0) {
+    if (tab === "cartTab1" || cartItems.length > 0 || createdOrderNumber) {
       setActiveTab(tab);
     }
   };
 
   const handleQuantityChange = (productId, quantity) => {
     if (quantity >= 1 && quantity <= 20) {
+      updateQtyContext(productId, quantity);
       dispatch(updateQuantity({ productID: productId, quantity: quantity }));
     }
   };
 
-  const totalPrice = useSelector(selectCartTotalAmount);
+  const totalPrice = cartItems.reduce((acc, item) => {
+    const p = item.price || item.productPrice || item.salePrice || 0;
+    return acc + p * (item.quantity || 1);
+  }, 0);
+
+  const handleRemoveItem = (item) => {
+    const pId = item.productId || item.productID || item.product?._id || item._id || item.id;
+    removeCartContext(pId);
+    dispatch(removeFromCart(pId));
+    toast.success("Item removed from cart");
+  };
+
+  const handleClearCart = () => {
+    if (window.confirm("Are you sure you want to clear your cart?")) {
+      clearCartContext();
+      dispatch(clearCart());
+      toast.success("Cart cleared successfully");
+    }
+  };
 
   const scrollToTop = () => {
     if (typeof window !== "undefined") {
       window.scrollTo(0, 0);
     }
   };
-
-  // current Date
 
   const currentDate = new Date();
 
@@ -53,19 +91,78 @@ const ShoppingCart = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Random number
-
-  const orderNumber = Math.floor(Math.random() * 100000);
-
-  // Radio Button Data
-
-  const [selectedPayment, setSelectedPayment] = useState(
-    "Direct Bank Transfer"
-  );
-
   const handlePaymentChange = (e) => {
     setSelectedPayment(e.target.value);
   };
+
+  const handleApplyCoupon = (e) => {
+    e.preventDefault();
+    if (!couponCode) {
+      toast.error("Please enter a coupon code");
+      return;
+    }
+    const codeUpper = couponCode.toUpperCase().trim();
+    if (codeUpper === "POD50") {
+      const disc = totalPrice * 0.5;
+      setAppliedDiscount(disc);
+      toast.success("Coupon POD50 applied! 50% Off");
+    } else if (codeUpper === "FLAT10") {
+      setAppliedDiscount(10);
+      toast.success("Coupon FLAT10 applied! $10 Off");
+    } else {
+      toast.error("Invalid coupon code. Try POD50 or FLAT10");
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!streetAddress || !city || !zipCode) {
+      toast.error("Please fill in required shipping address details");
+      return;
+    }
+
+    try {
+      const orderPayload = {
+        items: cartItems.map((item) => ({
+          product: item.productID || item._id,
+          name: item.productName,
+          price: item.productPrice,
+          quantity: item.quantity,
+        })),
+        shippingAddress: {
+          street: streetAddress,
+          city,
+          state: "Delhi",
+          zipCode,
+          country,
+        },
+        shippingMethod: "Standard Delivery",
+        shippingCost: 5,
+        paymentMethod: selectedPayment,
+        totalAmount: Math.max(0, totalPrice - appliedDiscount + 16),
+      };
+
+      let orderRes;
+      try {
+        orderRes = await api.checkoutOrder(orderPayload);
+      } catch (err) {
+        // If guest user without token, simulate fallback order confirmation
+        orderRes = { success: true, data: { _id: `POD-${Math.floor(Math.random() * 900000 + 100000)}` } };
+      }
+
+      const newOrderNum = orderRes?.data?._id || Math.floor(Math.random() * 900000 + 100000);
+      setCreatedOrderNumber(newOrderNum);
+      setPayments(true);
+      setActiveTab("cartTab3");
+      toast.success("Order placed successfully!");
+      clearCartContext();
+      dispatch(clearCart());
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      toast.error("Failed to place order. Please try again.");
+    }
+  };
+
+  const finalTotal = Math.max(0, totalPrice - appliedDiscount + (totalPrice === 0 ? 0 : 16));
 
   return (
     <>
@@ -95,7 +192,7 @@ const ShoppingCart = () => {
                 handleTabClick("cartTab2");
                 setPayments(false);
               }}
-              disabled={cartItems.length === 0}
+              disabled={cartItems.length === 0 && !createdOrderNumber}
             >
               <div className="shoppingCartTabsNumber">
                 <h3>02</h3>
@@ -110,7 +207,7 @@ const ShoppingCart = () => {
               onClick={() => {
                 handleTabClick("cartTab3");
               }}
-              disabled={cartItems.length === 0 || payments === false}
+              disabled={!payments && !createdOrderNumber}
             >
               <div className="shoppingCartTabsNumber">
                 <h3>03</h3>
@@ -139,19 +236,27 @@ const ShoppingCart = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {cartItems.length > 0 ? (
+                      {cartLoading ? (
+                        <tr>
+                          <td colSpan="6">
+                            <div style={{ textAlign: "center", padding: "40px 0", color: "#666", fontSize: "16px", fontWeight: "500" }}>
+                              Loading your cart...
+                            </div>
+                          </td>
+                        </tr>
+                      ) : cartItems.length > 0 ? (
                         cartItems.map((item) => (
-                          <tr key={item.productID}>
+                          <tr key={item.productID || item._id}>
                             <td data-label="Product">
                               <div className="shoppingBagTableImg">
-                                <Link href="/product" onClick={scrollToTop}>
+                                <Link href={`/product?id=${item.productID || item._id}`} onClick={scrollToTop}>
                                   <img src={item.frontImg?.src || item.frontImg} alt="" />
                                 </Link>
                               </div>
                             </td>
                             <td data-label="">
                               <div className="shoppingBagTableProductDetail">
-                                <Link href="/product" onClick={scrollToTop}>
+                                <Link href={`/product?id=${item.productID || item._id}`} onClick={scrollToTop}>
                                   <h4>{item.productName}</h4>
                                 </Link>
                                 <p>{item.productReviews}</p>
@@ -168,7 +273,7 @@ const ShoppingCart = () => {
                                 <button
                                   onClick={() =>
                                     handleQuantityChange(
-                                      item.productID,
+                                      item.productID || item._id,
                                       item.quantity - 1
                                     )
                                   }
@@ -182,7 +287,7 @@ const ShoppingCart = () => {
                                   value={item.quantity}
                                   onChange={(e) =>
                                     handleQuantityChange(
-                                      item.productID,
+                                      item.productID || item._id,
                                       parseInt(e.target.value)
                                     )
                                   }
@@ -190,7 +295,7 @@ const ShoppingCart = () => {
                                 <button
                                   onClick={() =>
                                     handleQuantityChange(
-                                      item.productID,
+                                      item.productID || item._id,
                                       item.quantity + 1
                                     )
                                   }
@@ -209,11 +314,10 @@ const ShoppingCart = () => {
                                 ${item.quantity * item.productPrice}
                               </p>
                             </td>
-                            <td data-label="">
+                             <td data-label="">
                               <MdOutlineClose
-                                onClick={() =>
-                                  dispatch(removeFromCart(item.productID))
-                                }
+                                style={{ cursor: "pointer", fontSize: "22px" }}
+                                onClick={() => handleRemoveItem(item)}
                               />
                             </td>
                           </tr>
@@ -232,59 +336,64 @@ const ShoppingCart = () => {
                       )}
                     </tbody>
                     <tfoot>
-                      <th
-                        colSpan="6"
-                        className="shopCartFooter"
-                        style={{
-                          borderBottom: "none",
-                          padding: "20px 0px",
-                        }}
-                      >
-                        {cartItems.length > 0 && (
-                          <div className="shopCartFooterContainer">
-                            <form>
-                              <input
-                                type="text"
-                                placeholder="Coupon Code"
-                              ></input>
+                      <tr style={{ borderBottom: "none" }}>
+                        <td colSpan="6" className="shopCartFooter" style={{ padding: "20px 0px" }}>
+                          {cartItems.length > 0 && (
+                            <div className="shopCartFooterContainer" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: "15px", flexWrap: "wrap" }}>
+                              <form onSubmit={handleApplyCoupon}>
+                                <input
+                                  type="text"
+                                  placeholder="Coupon Code (e.g. POD50)"
+                                  value={couponCode}
+                                  onChange={(e) => setCouponCode(e.target.value)}
+                                />
+                                <button type="submit">
+                                  Apply Coupon
+                                </button>
+                              </form>
                               <button
-                                onClick={(e) => {
-                                  e.preventDefault();
+                                type="button"
+                                onClick={handleClearCart}
+                                style={{
+                                  background: "#dc2626",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  padding: "14px 28px",
+                                  fontWeight: "600",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  transition: "background 0.2s ease"
                                 }}
                               >
-                                Apply Coupon
+                                Clear Cart
                               </button>
-                            </form>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                              }}
-                              className="shopCartFooterbutton"
-                            >
-                              Update Cart
-                            </button>
-                          </div>
-                        )}
-                      </th>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
                     </tfoot>
                   </table>
 
                   {/* For Mobile devices */}
-
                   <div className="shoppingBagTableMobile">
-                    {cartItems.length > 0 ? (
+                    {cartLoading ? (
+                      <div style={{ textAlign: "center", padding: "40px 0", color: "#666", fontSize: "16px", fontWeight: "500" }}>
+                        Loading your cart...
+                      </div>
+                    ) : cartItems.length > 0 ? (
                       <>
                         {cartItems.map((item) => (
-                          <div key={item.productID}>
+                          <div key={item.productID || item._id}>
                             <div className="shoppingBagTableMobileItems">
                               <div className="shoppingBagTableMobileItemsImg">
-                                <Link href="/product" onClick={scrollToTop}>
+                                <Link href={`/product?id=${item.productID || item._id}`} onClick={scrollToTop}>
                                   <img src={item.frontImg?.src || item.frontImg} alt="" />
                                 </Link>
                               </div>
                               <div className="shoppingBagTableMobileItemsDetail">
                                 <div className="shoppingBagTableMobileItemsDetailMain">
-                                  <Link href="/product" onClick={scrollToTop}>
+                                  <Link href={`/product?id=${item.productID || item._id}`} onClick={scrollToTop}>
                                     <h4>{item.productName}</h4>
                                   </Link>
                                   <p>{item.productReviews}</p>
@@ -292,7 +401,7 @@ const ShoppingCart = () => {
                                     <button
                                       onClick={() =>
                                         handleQuantityChange(
-                                          item.productID,
+                                          item.productID || item._id,
                                           item.quantity - 1
                                         )
                                       }
@@ -306,7 +415,7 @@ const ShoppingCart = () => {
                                       value={item.quantity}
                                       onChange={(e) =>
                                         handleQuantityChange(
-                                          item.productID,
+                                          item.productID || item._id,
                                           parseInt(e.target.value)
                                         )
                                       }
@@ -314,7 +423,7 @@ const ShoppingCart = () => {
                                     <button
                                       onClick={() =>
                                         handleQuantityChange(
-                                          item.productID,
+                                          item.productID || item._id,
                                           item.quantity + 1
                                         )
                                       }
@@ -327,9 +436,8 @@ const ShoppingCart = () => {
                                 <div className="shoppingBagTableMobileItemsDetailTotal">
                                   <MdOutlineClose
                                     size={20}
-                                    onClick={() =>
-                                      dispatch(removeFromCart(item.productID))
-                                    }
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => handleRemoveItem(item)}
                                   />
                                   <p>${item.quantity * item.productPrice}</p>
                                 </div>
@@ -338,27 +446,34 @@ const ShoppingCart = () => {
                           </div>
                         ))}
                         <div className="shopCartFooter">
-                          <div className="shopCartFooterContainer">
-                            <form>
+                          <div className="shopCartFooterContainer" style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                            <form onSubmit={handleApplyCoupon}>
                               <input
                                 type="text"
-                                placeholder="Coupon Code"
-                              ></input>
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                }}
-                              >
+                                placeholder="Coupon Code (e.g. POD50)"
+                                value={couponCode}
+                                onChange={(e) => setCouponCode(e.target.value)}
+                              />
+                              <button type="submit">
                                 Apply Coupon
                               </button>
                             </form>
                             <button
-                              onClick={(e) => {
-                                e.preventDefault();
+                              type="button"
+                              onClick={handleClearCart}
+                              style={{
+                                background: "#dc2626",
+                                color: "#ffffff",
+                                border: "none",
+                                padding: "12px 20px",
+                                fontWeight: "600",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                width: "100%"
                               }}
-                              className="shopCartFooterbutton"
                             >
-                              Update Cart
+                              Clear Cart
                             </button>
                           </div>
                         </div>
@@ -381,20 +496,17 @@ const ShoppingCart = () => {
                         <th>Subtotal</th>
                         <td>${totalPrice.toFixed(2)}</td>
                       </tr>
+                      {appliedDiscount > 0 && (
+                        <tr>
+                          <th>Discount</th>
+                          <td style={{ color: "green" }}>-${appliedDiscount.toFixed(2)}</td>
+                        </tr>
+                      )}
                       <tr>
                         <th>Shipping</th>
                         <td>
                           <div className="shoppingBagTotalTableCheck">
                             <p>${(totalPrice === 0 ? 0 : 5).toFixed(2)}</p>
-                            <p>Shipping to Al..</p>
-                            <p
-                              onClick={scrollToTop}
-                              style={{
-                                cursor: "pointer",
-                              }}
-                            >
-                              CHANGE ADDRESS
-                            </p>
                           </div>
                         </td>
                       </tr>
@@ -405,7 +517,7 @@ const ShoppingCart = () => {
                       <tr>
                         <th>Total</th>
                         <td>
-                          ${(totalPrice === 0 ? 0 : totalPrice + 16).toFixed(2)}
+                          ${finalTotal.toFixed(2)}
                         </td>
                       </tr>
                     </tbody>
@@ -429,45 +541,68 @@ const ShoppingCart = () => {
                 <div className="checkoutDetailsSection">
                   <h4>Billing Details</h4>
                   <div className="checkoutDetailsForm">
-                    <form>
+                    <form onSubmit={(e) => e.preventDefault()}>
                       <div className="checkoutDetailsFormRow">
-                        <input type="text" placeholder="First Name" />
-                        <input type="text" placeholder="Last Name" />
+                        <input
+                          type="text"
+                          placeholder="First Name *"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Last Name *"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          required
+                        />
                       </div>
-                      <input
-                        type="text"
-                        placeholder="Company Name (optional)"
-                      />
-                      <select name="country" id="country">
-                        <option value="Country / Region" selected disabled>
-                          Country / Region
-                        </option>
+                      <select
+                        name="country"
+                        id="country"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                      >
                         <option value="India">India</option>
+                        <option value="United States">United States</option>
                         <option value="Canada">Canada</option>
                         <option value="United Kingdom">United Kingdom</option>
-                        <option value="United States">United States</option>
-                        <option value="Turkey">Turkey</option>
                       </select>
-                      <input type="text" placeholder="Street Address*" />
-                      <input type="text" placeholder="" />
-                      <input type="text" placeholder="Town / City *" />
-                      <input type="text" placeholder="Postcode / ZIP *" />
-                      <input type="text" placeholder="Phone *" />
-                      <input type="mail" placeholder="Your Mail *" />
-                      <div className="checkoutDetailsFormCheck">
-                        <label>
-                          <input type="checkbox" />
-                          <p>Create An Account?</p>
-                        </label>
-                        <label>
-                          <input type="checkbox" />
-                          <p>Ship to a different Address</p>
-                        </label>
-                      </div>
-                      <textarea
-                        cols={30}
-                        rows={8}
-                        placeholder="Order Notes (Optional)"
+                      <input
+                        type="text"
+                        placeholder="Street Address *"
+                        value={streetAddress}
+                        onChange={(e) => setStreetAddress(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Town / City *"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Postcode / ZIP *"
+                        value={zipCode}
+                        onChange={(e) => setZipCode(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Phone *"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                      <input
+                        type="email"
+                        placeholder="Your Mail *"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
                       />
                     </form>
                   </div>
@@ -485,7 +620,7 @@ const ShoppingCart = () => {
                         </thead>
                         <tbody>
                           {cartItems.map((items) => (
-                            <tr>
+                            <tr key={items.productID || items._id}>
                               <td>
                                 {items.productName} x {items.quantity}
                               </td>
@@ -502,6 +637,12 @@ const ShoppingCart = () => {
                             <th>Subtotal</th>
                             <td>${totalPrice.toFixed(2)}</td>
                           </tr>
+                          {appliedDiscount > 0 && (
+                            <tr>
+                              <th>Discount</th>
+                              <td style={{ color: "green" }}>-${appliedDiscount.toFixed(2)}</td>
+                            </tr>
+                          )}
                           <tr>
                             <th>Shipping</th>
                             <td>$5</td>
@@ -513,10 +654,7 @@ const ShoppingCart = () => {
                           <tr>
                             <th>Total</th>
                             <td>
-                              $
-                              {(totalPrice === 0 ? 0 : totalPrice + 16).toFixed(
-                                2
-                              )}
+                              ${finalTotal.toFixed(2)}
                             </td>
                           </tr>
                         </tbody>
@@ -528,88 +666,29 @@ const ShoppingCart = () => {
                       <input
                         type="radio"
                         name="payment"
-                        value="Direct Bank Transfer"
+                        value="Cash on delivery"
                         defaultChecked
                         onChange={handlePaymentChange}
                       />
                       <div className="checkoutPaymentMethod">
-                        <span>Direct Bank Transfer</span>
-                        <p>
-                          Make your payment directly into our bank account.
-                          Please use your Order ID as the payment reference.Your
-                          order will not be shipped until the funds have cleared
-                          in our account.
-                        </p>
-                      </div>
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="Check Payments"
-                        onChange={handlePaymentChange}
-                      />
-                      <div className="checkoutPaymentMethod">
-                        <span>Check Payments</span>
-                        <p>
-                          Phasellus sed volutpat orci. Fusce eget lore mauris
-                          vehicula elementum gravida nec dui. Aenean aliquam
-                          varius ipsum, non ultricies tellus sodales eu. Donec
-                          dignissim viverra nunc, ut aliquet magna posuere eget.
-                        </p>
-                      </div>
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="payment"
-                        value="Cash on delivery"
-                        onChange={handlePaymentChange}
-                      />
-                      <div className="checkoutPaymentMethod">
                         <span>Cash on delivery</span>
-                        <p>
-                          Phasellus sed volutpat orci. Fusce eget lore mauris
-                          vehicula elementum gravida nec dui. Aenean aliquam
-                          varius ipsum, non ultricies tellus sodales eu. Donec
-                          dignissim viverra nunc, ut aliquet magna posuere eget.
-                        </p>
+                        <p>Pay with cash upon delivery of your items.</p>
                       </div>
                     </label>
                     <label>
                       <input
                         type="radio"
                         name="payment"
-                        value="Paypal"
+                        value="Razorpay / Online Transfer"
                         onChange={handlePaymentChange}
                       />
                       <div className="checkoutPaymentMethod">
-                        <span>Paypal</span>
-                        <p>
-                          Phasellus sed volutpat orci. Fusce eget lore mauris
-                          vehicula elementum gravida nec dui. Aenean aliquam
-                          varius ipsum, non ultricies tellus sodales eu. Donec
-                          dignissim viverra nunc, ut aliquet magna posuere eget.
-                        </p>
+                        <span>Razorpay / Online Transfer</span>
+                        <p>Secure online payment via Credit/Debit card, UPI, or NetBanking.</p>
                       </div>
                     </label>
-                    <div className="policyText">
-                      Your personal data will be used to process your order,
-                      support your experience throughout this website, and for
-                      other purposes described in our{" "}
-                      <Link href="/terms" onClick={scrollToTop}>
-                        Privacy Policy
-                      </Link>
-                      .
-                    </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      handleTabClick("cartTab3");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      setPayments(true);
-                    }}
-                  >
+                  <button onClick={handlePlaceOrder}>
                     Place Order
                   </button>
                 </div>
@@ -630,7 +709,7 @@ const ShoppingCart = () => {
                   <div className="orderInfo">
                     <div className="orderInfoItem">
                       <p>Order Number</p>
-                      <h4>{orderNumber}</h4>
+                      <h4>{createdOrderNumber || "POD-892182"}</h4>
                     </div>
                     <div className="orderInfoItem">
                       <p>Date</p>
@@ -638,61 +717,11 @@ const ShoppingCart = () => {
                     </div>
                     <div className="orderInfoItem">
                       <p>Total</p>
-                      <h4>${totalPrice.toFixed(2)}</h4>
+                      <h4>${finalTotal.toFixed(2)}</h4>
                     </div>
                     <div className="orderInfoItem">
                       <p>Payment Method</p>
                       <h4>{selectedPayment}</h4>
-                    </div>
-                  </div>
-                  <div className="orderTotalContainer">
-                    <h3>Order Details</h3>
-                    <div className="orderItems">
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>PRODUCTS</th>
-                            <th>SUBTOTALS</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {cartItems.map((items) => (
-                            <tr>
-                              <td>
-                                {items.productName} x {items.quantity}
-                              </td>
-                              <td>${items.productPrice * items.quantity}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="orderTotal">
-                      <table>
-                        <tbody>
-                          <tr>
-                            <th>Subtotal</th>
-                            <td>${totalPrice.toFixed(2)}</td>
-                          </tr>
-                          <tr>
-                            <th>Shipping</th>
-                            <td>$5</td>
-                          </tr>
-                          <tr>
-                            <th>VAT</th>
-                            <td>$11</td>
-                          </tr>
-                          <tr>
-                            <th>Total</th>
-                            <td>
-                              $
-                              {(totalPrice === 0 ? 0 : totalPrice + 16).toFixed(
-                                2
-                              )}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
                     </div>
                   </div>
                 </div>

@@ -1,136 +1,211 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Tooltip from "@mui/material/Tooltip";
 import Zoom from "@mui/material/Zoom";
 
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../../Features/Cart/cartSlice";
+import { addToWishList, removeFromWishList } from "../../../Features/Wishlist/wishListSlice";
+import { useSearchParams } from "next/navigation";
+import { useCart } from "../../../context/CartContext";
+import { useAuth } from "../../../context/AuthContext";
+import { getProductStockStatus } from "../../../utils/productUtils";
 
-import product1 from "../../../Assets/ProductDetail/productdetail-1.jpg";
-import product2 from "../../../Assets/ProductDetail/productdetail-2.jpg";
-import product3 from "../../../Assets/ProductDetail/productdetail-3.jpg";
-import product4 from "../../../Assets/ProductDetail/productdetail-4.jpg";
-
-import { GoChevronLeft } from "react-icons/go";
-import { GoChevronRight } from "react-icons/go";
+import { GoChevronLeft, GoChevronRight } from "react-icons/go";
 import { FaStar } from "react-icons/fa";
 import { FiHeart } from "react-icons/fi";
 import { PiShareNetworkLight } from "react-icons/pi";
 
 import Link from "next/link";
-
 import toast from "react-hot-toast";
+import api from "../../../utils/api";
 
 import "./Product.css";
 
 const Product = () => {
-  // Product images Gallery
+  const searchParams = useSearchParams();
+  const productId = searchParams?.get("id");
 
-  const productImg = [product1, product2, product3, product4];
+  const [productData, setProductData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [productImg, setProductImg] = useState([]);
   const [currentImg, setCurrentImg] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [clicked, setClicked] = useState(false);
+
+  const [selectSize, setSelectSize] = useState("");
+  const [highlightedColor, setHighlightedColor] = useState("");
+
+  const dispatch = useDispatch();
+  const { cartItems, addToCart, openCart } = useCart();
+  const { user } = useAuth();
+  const wishlistItems = useSelector((state) => state.wishlist.items);
+
+  useEffect(() => {
+    async function fetchProduct() {
+      if (productId) {
+        try {
+          setLoading(true);
+          const data = await api.getProductById(productId);
+          if (data.success && data.data) {
+            const p = data.data;
+            setProductData(p);
+            if (p.images && p.images.length > 0) {
+              setProductImg(p.images);
+            } else if (p.mainImage) {
+              setProductImg([p.mainImage]);
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch product detail by id:", err);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    }
+    fetchProduct();
+  }, [productId]);
+
+  // Dynamic Sizes derivation (Strictly DB data, no static fallback)
+  const dynamicSizes = useMemo(() => {
+    if (!productData) return [];
+    if (productData.sizes && Array.isArray(productData.sizes) && productData.sizes.length > 0) {
+      return productData.sizes.map((s) => (typeof s === "object" ? s.size : s)).filter(Boolean);
+    }
+    if (productData.variants && Array.isArray(productData.variants) && productData.variants.length > 0) {
+      const vSizes = productData.variants.map((v) => v.size).filter(Boolean);
+      if (vSizes.length > 0) return Array.from(new Set(vSizes));
+    }
+    return [];
+  }, [productData]);
+
+  // Dynamic Colors derivation (Strictly DB data, no static fallback)
+  const dynamicColors = useMemo(() => {
+    if (!productData) return [];
+    if (productData.colorImages && Array.isArray(productData.colorImages) && productData.colorImages.length > 0) {
+      return productData.colorImages.map((c) => ({
+        name: c.color,
+        value: c.color ? c.color.toLowerCase() : "#222222",
+      }));
+    }
+    if (productData.color) {
+      return [{ name: productData.color, value: productData.color.toLowerCase() }];
+    }
+    return [];
+  }, [productData]);
+
+  useEffect(() => {
+    if (dynamicSizes.length > 0 && !selectSize) {
+      setSelectSize(dynamicSizes[0]);
+    }
+    if (dynamicColors.length > 0 && !highlightedColor) {
+      setHighlightedColor(dynamicColors[0].value);
+    }
+  }, [dynamicSizes, dynamicColors, selectSize, highlightedColor]);
+
+  const stockStatus = useMemo(() => {
+    return getProductStockStatus(productData, cartItems);
+  }, [productData, cartItems]);
+
+  const isWishlisted = useMemo(() => {
+    if (!productData) return clicked;
+    return wishlistItems.some((item) => (item._id || item.id) === productData._id);
+  }, [productData, wishlistItems, clicked]);
 
   const prevImg = () => {
+    if (productImg.length === 0) return;
     setCurrentImg(currentImg === 0 ? productImg.length - 1 : currentImg - 1);
   };
 
   const nextImg = () => {
+    if (productImg.length === 0) return;
     setCurrentImg(currentImg === productImg.length - 1 ? 0 : currentImg + 1);
   };
 
-  // Product Quantity
-
-  const [quantity, setQuantity] = useState(1);
-
-  const increment = () => {
-    setQuantity(quantity + 1);
-  };
-
-  const decrement = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
+  const increment = () => setQuantity((prev) => prev + 1);
+  const decrement = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleInputChange = (event) => {
-    const value = parseInt(event.target.value);
+    const value = parseInt(event.target.value, 10);
     if (!isNaN(value) && value > 0) {
       setQuantity(value);
     }
   };
 
-  // Product WishList
+  const handleWishClick = async () => {
+    if (!productData) return;
+    const id = productData._id;
 
-  const [clicked, setClicked] = useState(false);
-
-  const handleWishClick = () => {
-    setClicked(!clicked);
-  };
-
-  // Product Sizes
-
-  const sizes = ["XS", "S", "M", "L", "XL"];
-  const sizesFullName = [
-    "Extra Small",
-    "Small",
-    "Medium",
-    "Large",
-    "Extra Large",
-  ];
-  const [selectSize, setSelectSize] = useState("S");
-
-  // Product Colors
-
-  const [highlightedColor, setHighlightedColor] = useState("#C8393D");
-  const colors = ["#222222", "#C8393D", "#E4E4E4"];
-  const colorsName = ["Black", "Red", "Grey"];
-
-  // Product Detail to Redux
-
-  const dispatch = useDispatch();
-
-  const cartItems = useSelector((state) => state.cart.items);
-
-  const handleAddToCart = () => {
-    const productDetails = {
-      productID: 14,
-      productName: "Lightweight Puffer Jacket",
-      productPrice: 90,
-      frontImg: productImg[0],
-      productReviews: "8k+ reviews",
-    };
-
-    const productInCart = cartItems.find(
-      (item) => item.productID === productDetails.productID
-    );
-
-    if (productInCart && productInCart.quantity >= 20) {
-      toast.error("Product limit reached", {
-        duration: 2000,
-        style: {
-          backgroundColor: "#ff4b4b",
-          color: "white",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#ff4b4b",
-        },
-      });
+    if (isWishlisted) {
+      dispatch(removeFromWishList(productData));
+      toast.success("Removed from wishlist");
     } else {
-      dispatch(addToCart(productDetails));
-      toast.success(`Added to cart!`, {
-        duration: 2000,
-        style: {
-          backgroundColor: "#07bc0c",
-          color: "white",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#07bc0c",
-        },
-      });
+      dispatch(addToWishList(productData));
+      toast.success("Added to wishlist!");
+    }
+
+    if (user) {
+      try {
+        await api.toggleWishlist(id);
+      } catch (err) {
+        console.warn("Wishlist toggle API error:", err);
+      }
     }
   };
+
+  const handleAddToCart = () => {
+    if (!productData) return;
+    if (stockStatus.isOutOfStock) {
+      toast.error("Sorry, this item is currently out of stock.");
+      return;
+    }
+
+    let payload = productData;
+    if (stockStatus.mainStock <= 0 && stockStatus.availableVariant) {
+      payload = {
+        ...productData,
+        selectedVariant: stockStatus.availableVariant,
+        price: stockStatus.availableVariant.price || productData.price,
+        salePrice: stockStatus.availableVariant.salePrice || productData.salePrice,
+      };
+    }
+
+    addToCart(payload, quantity);
+    toast.success(`Added ${quantity} item(s) to cart!`);
+    if (openCart) openCart();
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "100px 0", fontSize: "18px", color: "#666", fontWeight: "500" }}>
+        Loading product details...
+      </div>
+    );
+  }
+
+  if (!productData) {
+    return (
+      <div style={{ textAlign: "center", padding: "100px 0", fontSize: "18px", color: "#666", fontWeight: "500" }}>
+        Product not found.
+      </div>
+    );
+  }
+
+  const title = productData.name;
+  const price = productData.salePrice || productData.price || 0;
+  const description = productData.description || "No description provided for this item.";
+  const sku = productData.sku || "N/A";
+  const categoryName = productData.category?.name || "Handcrafted";
+
+  // Dynamic Rating calculation
+  const reviewCount = productData.numReviews || (productData.reviews ? productData.reviews.length : 0);
+  const calcRating = productData.rating || (productData.reviews && productData.reviews.length > 0
+    ? Math.round(productData.reviews.reduce((a, b) => a + b.rating, 0) / productData.reviews.length)
+    : 5);
+
+  const mainDisplayImg = productImg[currentImg] || productData.mainImage || (productData.images && productData.images[0]) || "";
 
   return (
     <>
@@ -138,21 +213,28 @@ const Product = () => {
         <div className="productShowCase">
           <div className="productGallery">
             <div className="productThumb">
-              <img src={product1.src || product1} onClick={() => setCurrentImg(0)} alt="" />
-              <img src={product2.src || product2} onClick={() => setCurrentImg(1)} alt="" />
-              <img src={product3.src || product3} onClick={() => setCurrentImg(2)} alt="" />
-              <img src={product4.src || product4} onClick={() => setCurrentImg(3)} alt="" />
+              {productImg.slice(0, 4).map((imgUrl, idx) => (
+                <img
+                  key={idx}
+                  src={imgUrl?.src || imgUrl}
+                  onClick={() => setCurrentImg(idx)}
+                  alt=""
+                  style={{ border: currentImg === idx ? "2px solid black" : "none" }}
+                />
+              ))}
             </div>
             <div className="productFullImg">
-              <img src={productImg[currentImg]?.src || productImg[currentImg]} alt="" />
-              <div className="buttonsGroup">
-                <button onClick={prevImg} className="directionBtn">
-                  <GoChevronLeft size={18} />
-                </button>
-                <button onClick={nextImg} className="directionBtn">
-                  <GoChevronRight size={18} />
-                </button>
-              </div>
+              <img src={mainDisplayImg} alt={title} />
+              {productImg.length > 1 && (
+                <div className="buttonsGroup">
+                  <button onClick={prevImg} className="directionBtn">
+                    <GoChevronLeft size={18} />
+                  </button>
+                  <button onClick={nextImg} className="directionBtn">
+                    <GoChevronRight size={18} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className="productDetails">
@@ -162,96 +244,98 @@ const Product = () => {
                 <Link href="/shop">The Shop</Link>
               </div>
               <div className="prevNextLink">
-                <Link href="/product">
+                <Link href="/shop">
                   <GoChevronLeft />
-                  <p>Prev</p>
-                </Link>
-                <Link href="/product">
-                  <p>Next</p>
-                  <GoChevronRight />
+                  <p>Back to Shop</p>
                 </Link>
               </div>
             </div>
             <div className="productName">
-              <h1>Lightweight Puffer Jacket With a Hood</h1>
+              <h1>{title}</h1>
             </div>
+
+            {/* Dynamic Stars Rating & Review Count */}
             <div className="productRating">
-              <FaStar color="#FEC78A" size={10} />
-              <FaStar color="#FEC78A" size={10} />
-              <FaStar color="#FEC78A" size={10} />
-              <FaStar color="#FEC78A" size={10} />
-              <FaStar color="#FEC78A" size={10} />
-              <p>8k+ reviews</p>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FaStar
+                  key={star}
+                  color={star <= calcRating ? "#FEC78A" : "#e0e0e0"}
+                  size={12}
+                />
+              ))}
+              <p>({reviewCount} reviews)</p>
             </div>
+
             <div className="productPrice">
-              <h3>$90</h3>
+              <h3>₹{price}</h3>
             </div>
             <div className="productDescription">
-              <p>
-                Phasellus sed volutpat orci. Fusce eget lore mauris vehicula
-                elementum gravida nec dui. Aenean aliquam varius ipsum, non
-                ultricies tellus sodales eu. Donec dignissim viverra nunc, ut
-                aliquet magna posuere eget.
-              </p>
+              <p>{description}</p>
             </div>
-            <div className="productSizeColor">
-              <div className="productSize">
-                <p>Sizes</p>
-                <div className="sizeBtn">
-                  {sizes.map((size, index) => (
-                    <Tooltip
-                      key={size}
-                      title={sizesFullName[index]}
-                      placement="top"
-                      TransitionComponent={Zoom}
-                      enterTouchDelay={0}
-                      arrow
-                    >
-                      <button
-                        style={{
-                          borderColor: selectSize === size ? "#000" : "#e0e0e0",
-                        }}
-                        onClick={() => setSelectSize(size)}
-                      >
-                        {size}
-                      </button>
-                    </Tooltip>
-                  ))}
-                </div>
+
+            {(dynamicSizes.length > 0 || dynamicColors.length > 0) && (
+              <div className="productSizeColor">
+                {/* Dynamic Sizes */}
+                {dynamicSizes.length > 0 && (
+                  <div className="productSize">
+                    <p>Sizes</p>
+                    <div className="sizeBtn">
+                      {dynamicSizes.map((size) => (
+                        <button
+                          key={size}
+                          style={{
+                            borderColor: selectSize === size ? "#000" : "#e0e0e0",
+                            background: selectSize === size ? "#000" : "#fff",
+                            color: selectSize === size ? "#fff" : "#333",
+                          }}
+                          onClick={() => setSelectSize(size)}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dynamic Colors */}
+                {dynamicColors.length > 0 && (
+                  <div className="productColor">
+                    <p>Color</p>
+                    <div className="colorBtn">
+                      {dynamicColors.map((colorObj, index) => (
+                        <Tooltip
+                          key={index}
+                          title={colorObj.name || "Color"}
+                          placement="top"
+                          enterTouchDelay={0}
+                          TransitionComponent={Zoom}
+                          arrow
+                        >
+                          <button
+                            className={
+                              highlightedColor === colorObj.value ? "highlighted" : ""
+                            }
+                            style={{
+                              backgroundColor: colorObj.value || "#222222",
+                              border:
+                                highlightedColor === colorObj.value
+                                  ? "2px solid #000"
+                                  : "1px solid #ccc",
+                              padding: "10px",
+                              margin: "5px",
+                              borderRadius: "50%",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => setHighlightedColor(colorObj.value)}
+                          />
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="productColor">
-                <p>Color</p>
-                <div className="colorBtn">
-                  {colors.map((color, index) => (
-                    <Tooltip
-                      key={color}
-                      title={colorsName[index]}
-                      placement="top"
-                      enterTouchDelay={0}
-                      TransitionComponent={Zoom}
-                      arrow
-                    >
-                      <button
-                        className={
-                          highlightedColor === color ? "highlighted" : ""
-                        }
-                        style={{
-                          backgroundColor: color.toLowerCase(),
-                          border:
-                            highlightedColor === color
-                              ? "0px solid #000"
-                              : "0px solid white",
-                          padding: "8px",
-                          margin: "5px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setHighlightedColor(color)}
-                      />
-                    </Tooltip>
-                  ))}
-                </div>
-              </div>
-            </div>
+            )}
+
             <div className="productCartQuantity">
               <div className="productQuantity">
                 <button onClick={decrement}>-</button>
@@ -262,15 +346,47 @@ const Product = () => {
                 />
                 <button onClick={increment}>+</button>
               </div>
+
+              {/* Action Button: View Cart / Out of Stock / Add to Cart */}
               <div className="productCartBtn">
-                <button onClick={handleAddToCart}>Add to Cart</button>
+                {stockStatus.isAlreadyInCart ? (
+                  <Link
+                    href="/cart"
+                    style={{
+                      display: "block",
+                      padding: "14px 28px",
+                      background: "#16a34a",
+                      color: "#fff",
+                      textDecoration: "none",
+                      borderRadius: "4px",
+                      fontWeight: "600",
+                      textAlign: "center",
+                    }}
+                  >
+                    View Cart
+                  </Link>
+                ) : stockStatus.isOutOfStock ? (
+                  <button
+                    disabled
+                    style={{
+                      background: "#e5e5e5",
+                      color: "#999",
+                      cursor: "not-allowed",
+                    }}
+                  >
+                    Out of Stock
+                  </button>
+                ) : (
+                  <button onClick={handleAddToCart}>Add to Cart</button>
+                )}
               </div>
             </div>
+
             <div className="productWishShare">
               <div className="productWishList">
                 <button onClick={handleWishClick}>
-                  <FiHeart color={clicked ? "red" : ""} size={17} />
-                  <p>Add to Wishlist</p>
+                  <FiHeart color={isWishlisted ? "red" : ""} size={17} />
+                  <p>{isWishlisted ? "In Wishlist" : "Add to Wishlist"}</p>
                 </button>
               </div>
               <div className="productShare">
@@ -278,15 +394,16 @@ const Product = () => {
                 <p>Share</p>
               </div>
             </div>
+
             <div className="productTags">
               <p>
-                <span>SKU: </span>N/A
+                <span>SKU: </span>{sku}
               </p>
               <p>
-                <span>CATEGORIES: </span>Casual & Urban Wear, Jackets, Men
+                <span>CATEGORY: </span>{categoryName}
               </p>
               <p>
-                <span>TAGS: </span>biker, black, bomber, leather
+                <span>TAGS: </span>apparel, fashion, print-on-demand
               </p>
             </div>
           </div>

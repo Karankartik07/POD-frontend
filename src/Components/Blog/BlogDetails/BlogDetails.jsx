@@ -4,9 +4,9 @@ import React from "react";
 
 import "./BlogDetails.css";
 
-import blogdetail1 from "../../../Assets/Blog/blogDetail1.jpg";
-import blogimage1 from "../../../Assets/Blog/blogDetail2.jpg";
-import blogimage2 from "../../../Assets/Blog/blogDetail3.jpg";
+const blogdetail1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230464/pod_assets/Blog/blogDetail1.jpg";
+const blogimage1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230465/pod_assets/Blog/blogDetail2.jpg";
+const blogimage2 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230466/pod_assets/Blog/blogDetail3.jpg";
 
 import { FaFacebookF } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";

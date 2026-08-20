@@ -18,13 +18,11 @@ import ResetPass from "./Components/Authentication/Reset/ResetPass";
 import BlogDetails from "./Components/Blog/BlogDetails/BlogDetails";
 import TermsConditions from "./pages_legacy/TermsConditions";
 import ShoppingCart from "./Components/ShoppingCart/ShoppingCart";
-import Popup from "./Components/PopupBanner/Popup";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <>
-      <Popup />
       <ScrollToTop />
       <BrowserRouter>
         <Header />

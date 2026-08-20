@@ -3,8 +3,8 @@
 import React from "react";
 import "./AboutPage.css";
 
-import about1 from "../../Assets/About/about-1.jpg";
-import about2 from "../../Assets/About/about-2.jpg";
+const about1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230455/pod_assets/About/about-1.jpg";
+const about2 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230457/pod_assets/About/about-2.jpg";
 
 import Services from "../../Components/Home/Services/Services";
 
@@ -12,13 +12,13 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 
-import brand1 from "../../Assets/Brands/brand1.png";
-import brand2 from "../../Assets/Brands/brand2.png";
-import brand3 from "../../Assets/Brands/brand3.png";
-import brand4 from "../../Assets/Brands/brand4.png";
-import brand5 from "../../Assets/Brands/brand5.png";
-import brand6 from "../../Assets/Brands/brand6.png";
-import brand7 from "../../Assets/Brands/brand7.png";
+const brand1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230467/pod_assets/Brands/brand1.png";
+const brand2 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230467/pod_assets/Brands/brand2.png";
+const brand3 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230468/pod_assets/Brands/brand3.png";
+const brand4 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230469/pod_assets/Brands/brand4.png";
+const brand5 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230470/pod_assets/Brands/brand5.png";
+const brand6 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230471/pod_assets/Brands/brand6.png";
+const brand7 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230471/pod_assets/Brands/brand7.png";
 
 const AboutPage = () => {
   const brands = [brand1, brand2, brand3, brand4, brand5, brand6, brand7];

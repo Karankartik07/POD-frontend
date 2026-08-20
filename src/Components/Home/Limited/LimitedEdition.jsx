@@ -1,39 +1,58 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./LimitedEdition.css";
-
-import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../../Features/Cart/cartSlice";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 
-import { Navigation } from "swiper/modules";
-import { Autoplay } from "swiper/modules";
-
+import { Navigation, Autoplay } from "swiper/modules";
 import Link from "next/link";
-
-import StoreData from "../../../Data/StoreData";
-
 import { FiHeart } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaCartPlus } from "react-icons/fa";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { FaCartPlus } from "react-icons/fa";
-
 import toast from "react-hot-toast";
+import api from "../../../utils/api";
+import { useCart } from "../../../context/CartContext";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWishList, removeFromWishList } from "../../../Features/Wishlist/wishListSlice";
 
 const LimitedEdition = () => {
+  const [products, setProducts] = useState([]);
+  const { addToCart, openCart } = useCart();
   const dispatch = useDispatch();
+  const wishlistItems = useSelector((state) => state.wishlist.items);
 
-  const [wishList, setWishList] = useState({});
+  useEffect(() => {
+    async function loadLimited() {
+      try {
+        const data = await api.getProducts({ limit: 10 });
+        if (data.success && data.data && data.data.products) {
+          setProducts(data.data.products);
+        }
+      } catch (err) {
+        console.warn("Could not load limited edition products:", err);
+      }
+    }
+    loadLimited();
+  }, []);
 
-  const handleWishlistClick = (productID) => {
-    setWishList((prevWishlist) => ({
-      ...prevWishlist,
-      [productID]: !prevWishlist[productID],
-    }));
+  const handleWishlistClick = (product) => {
+    const isWishlisted = wishlistItems.some((i) => (i._id || i.id) === product._id);
+    if (isWishlisted) {
+      dispatch(removeFromWishList(product));
+      toast.success("Removed from wishlist");
+    } else {
+      dispatch(addToWishList(product));
+      toast.success("Added to wishlist!");
+    }
+  };
+
+  const handleAddToCart = (product) => {
+    addToCart(product, 1);
+    toast.success(`${product.name || "Product"} added to cart!`);
+    if (openCart) openCart();
   };
 
   const scrollToTop = () => {
@@ -42,40 +61,7 @@ const LimitedEdition = () => {
     }
   };
 
-  const cartItems = useSelector((state) => state.cart.items);
-
-  const handleAddToCart = (product) => {
-    const productInCart = cartItems.find(
-      (item) => item.productID === product.productID
-    );
-
-    if (productInCart && productInCart.quantity >= 20) {
-      toast.error("Product limit reached", {
-        duration: 2000,
-        style: {
-          backgroundColor: "#ff4b4b",
-          color: "white",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#ff4b4b",
-        },
-      });
-    } else {
-      dispatch(addToCart(product));
-      toast.success(`Added to cart!`, {
-        duration: 2000,
-        style: {
-          backgroundColor: "#07bc0c",
-          color: "white",
-        },
-        iconTheme: {
-          primary: "#fff",
-          secondary: "#07bc0c",
-        },
-      });
-    }
-  };
+  if (products.length === 0) return null;
 
   return (
     <>
@@ -92,9 +78,9 @@ const LimitedEdition = () => {
           </div>
           <Swiper
             slidesPerView={4}
-            slidesPerGroup={4}
+            slidesPerGroup={1}
             spaceBetween={30}
-            loop={true}
+            loop={products.length > 4}
             navigation={{
               nextEl: ".image-swiper-button-next",
               prevEl: ".image-swiper-button-prev",
@@ -123,15 +109,20 @@ const LimitedEdition = () => {
               },
             }}
           >
-            {StoreData.slice(8, 13).map((product) => {
+            {products.map((product) => {
+              const id = product._id;
+              const isWishlisted = wishlistItems.some((i) => (i._id || i.id) === id);
+              const frontImg = product.mainImage || (product.images && product.images[0]) || "";
+              const calcRating = product.rating || 5;
+
               return (
-                <SwiperSlide key={product.productID}>
+                <SwiperSlide key={id}>
                   <div className="lpContainer">
                     <div className="lpImageContainer">
-                      <Link href="/product" onClick={scrollToTop}>
+                      <Link href={`/product?id=${id}`} onClick={scrollToTop}>
                         <img
-                          src={product.frontImg?.src || product.frontImg}
-                          alt={product.productName}
+                          src={frontImg}
+                          alt={product.name}
                           className="lpImage"
                         />
                       </Link>
@@ -147,32 +138,32 @@ const LimitedEdition = () => {
                     </div>
                     <div className="limitedProductInfo">
                       <div className="lpCategoryWishlist">
-                        <p>Dresses</p>
+                        <p>{product.category?.name || "Handcrafted"}</p>
                         <FiHeart
-                          onClick={() => handleWishlistClick(product.productID)}
+                          onClick={() => handleWishlistClick(product)}
                           style={{
-                            color: wishList[product.productID]
-                              ? "red"
-                              : "#767676",
+                            color: isWishlisted ? "red" : "#767676",
                             cursor: "pointer",
                           }}
                         />
                       </div>
                       <div className="productNameInfo">
-                        <Link href="/product" onClick={scrollToTop}>
-                          <h5>{product.productName}</h5>
+                        <Link href={`/product?id=${id}`} onClick={scrollToTop}>
+                          <h5>{product.name}</h5>
                         </Link>
-                        <p>${product.productPrice}</p>
+                        <p>₹{product.salePrice || product.price}</p>
                         <div className="productRatingReviews">
                           <div className="productRatingStar">
-                            <FaStar color="#FEC78A" size={10} />
-                            <FaStar color="#FEC78A" size={10} />
-                            <FaStar color="#FEC78A" size={10} />
-                            <FaStar color="#FEC78A" size={10} />
-                            <FaStar color="#FEC78A" size={10} />
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <FaStar
+                                key={star}
+                                color={star <= calcRating ? "#FEC78A" : "#e0e0e0"}
+                                size={10}
+                              />
+                            ))}
                           </div>
 
-                          <span>{product.productReviews}</span>
+                          <span>({product.numReviews || 0} reviews)</span>
                         </div>
                       </div>
                     </div>

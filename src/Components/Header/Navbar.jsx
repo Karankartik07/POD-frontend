@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import "./Navbar.css";
 
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../Features/Auth/authSlice";
 
-import logo from "../../Assets/logo.png";
+const logo = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230546/pod_assets/logo.png";
 import Link from "next/link";
 
 import { RiMenu2Line } from "react-icons/ri";
@@ -21,9 +22,16 @@ import { FaYoutube } from "react-icons/fa";
 import { FaPinterest } from "react-icons/fa";
 
 import Badge from "@mui/material/Badge";
+import toast from "react-hot-toast";
+
+import { useCart } from "../../context/CartContext";
 
 const Navbar = () => {
+  const { openCart, cartItems } = useCart();
   const cart = useSelector((state) => state.cart);
+  const wishlist = useSelector((state) => state.wishlist);
+  const auth = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -35,9 +43,20 @@ const Navbar = () => {
   };
 
   const scrollToTop = () => {
-    if (typeof window !== "undefined") {
-      window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "auto";
     }
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 50);
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Logged out successfully");
   };
 
   return (
@@ -46,34 +65,34 @@ const Navbar = () => {
       <nav className="navBar">
         <div className="logoLinkContainer">
           <div className="logoContainer">
-            <Link href="/" onClick={scrollToTop}>
+            <Link href="/">
               <img src={logo.src || logo} alt="Logo" />
             </Link>
           </div>
           <div className="linkContainer">
             <ul>
               <li>
-                <Link href="/" onClick={scrollToTop}>
+                <Link href="/">
                   HOME
                 </Link>
               </li>
               <li>
-                <Link href="/shop" onClick={scrollToTop}>
+                <Link href="/shop">
                   SHOP
                 </Link>
               </li>
               <li>
-                <Link href="/blog" onClick={scrollToTop}>
+                <Link href="/blog">
                   BLOG
                 </Link>
               </li>
               <li>
-                <Link href="/about" onClick={scrollToTop}>
+                <Link href="/about">
                   ABOUT
                 </Link>
               </li>
               <li>
-                <Link href="/contact" onClick={scrollToTop}>
+                <Link href="/contact">
                   CONTACT
                 </Link>
               </li>
@@ -81,13 +100,28 @@ const Navbar = () => {
           </div>
         </div>
         <div className="iconContainer">
-          <FiSearch size={22} onClick={scrollToTop} />
-          <Link href="/login-signup" onClick={scrollToTop}>
-            <FaRegUser size={22} />
+          <Link href="/shop">
+            <FiSearch size={22} />
           </Link>
-          <Link href="/cart" onClick={scrollToTop}>
+          {auth.user ? (
+            <Link href="/account" className="navUserProfile">
+              {auth.user.avatar ? (
+                <img src={auth.user.avatar} alt={auth.user.name} className="navAvatarImg" />
+              ) : (
+                <div className="navAvatarBadge">
+                  {auth.user.name ? auth.user.name[0].toUpperCase() : "U"}
+                </div>
+              )}
+              <span className="navUserName">Hi, {auth.user.name.split(" ")[0]}</span>
+            </Link>
+          ) : (
+            <Link href="/login-signup">
+              <FaRegUser size={22} />
+            </Link>
+          )}
+          <Link href="/cart">
             <Badge
-              badgeContent={cart.items.length === 0 ? "0" : cart.items.length}
+              badgeContent={cartItems.length === 0 ? "0" : cartItems.length}
               color="primary"
               anchorOrigin={{
                 vertical: "bottom",
@@ -97,8 +131,18 @@ const Navbar = () => {
               <RiShoppingBagLine size={22} />
             </Badge>
           </Link>
-          <FiHeart size={22} onClick={scrollToTop} />
-          {/* <RiMenu2Line size={22} /> */}
+          <Link href="/wishlist">
+            <Badge
+              badgeContent={wishlist.items.length === 0 ? "0" : wishlist.items.length}
+              color="secondary"
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+            >
+              <FiHeart size={22} />
+            </Badge>
+          </Link>
         </div>
       </nav>
 
@@ -151,6 +195,11 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/wishlist" onClick={toggleMobileMenu}>
+                    WISHLIST ({wishlist.items.length})
+                  </Link>
+                </li>
+                <li>
                   <Link href="/blog" onClick={toggleMobileMenu}>
                     BLOG
                   </Link>
@@ -171,10 +220,19 @@ const Navbar = () => {
 
           <div className="mobile-menuFooter">
             <div className="mobile-menuFooterLogin">
-              <Link href="/login-signup" onClick={toggleMobileMenu}>
-                <FaRegUser />
-                <p>My Account</p>
-              </Link>
+              {auth.user ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Link href="/account" onClick={toggleMobileMenu} style={{ textDecoration: "none", color: "inherit", fontWeight: "600" }}>
+                    My Account ({auth.user.name})
+                  </Link>
+                  <button onClick={handleLogout} style={{ padding: "4px 8px", cursor: "pointer" }}>Logout</button>
+                </div>
+              ) : (
+                <Link href="/login-signup" onClick={toggleMobileMenu}>
+                  <FaRegUser />
+                  <p>My Account / Login</p>
+                </Link>
+              )}
             </div>
             <div className="mobile-menuFooterLangCurrency">
               <div className="mobile-menuFooterLang">

@@ -1,9 +1,9 @@
-import blog1 from "../Assets/Blog/blog1.jpg";
-import blog2 from "../Assets/Blog/blog2.jpg";
-import blog3 from "../Assets/Blog/blog3.jpg";
-import blog4 from "../Assets/Blog/blog4.jpg";
-import blog5 from "../Assets/Blog/blog5.jpg";
-import blog6 from "../Assets/Blog/blog6.jpg";
+const blog1 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230459/pod_assets/Blog/blog1.jpg";
+const blog2 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230460/pod_assets/Blog/blog2.jpg";
+const blog3 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230461/pod_assets/Blog/blog3.jpg";
+const blog4 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230462/pod_assets/Blog/blog4.jpg";
+const blog5 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230462/pod_assets/Blog/blog5.jpg";
+const blog6 = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230464/pod_assets/Blog/blog6.jpg";
 
 let BlogData = [
   {

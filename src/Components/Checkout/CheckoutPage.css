@@ -1,0 +1,189 @@
+.checkoutPageSection {
+  padding: 40px 160px;
+  min-height: 80vh;
+  background-color: #fcfcf9;
+}
+
+.checkoutHeader {
+  margin-bottom: 30px;
+}
+
+.checkoutHeader h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1b1b1b;
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 40px;
+}
+
+.checkoutLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.savedAddressContainer {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.savedAddressGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.savedAddressBox {
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+.savedAddressBox.selected {
+  border-color: #1b1b1b;
+  background: #fff;
+}
+
+.savedAddressBox h5 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.savedAddressBox p {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.billingFormCard {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.billingFormCard h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #1b1b1b;
+}
+
+.billingForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.billingForm .row {
+  display: flex;
+  gap: 16px;
+}
+
+.billingForm .row input {
+  flex: 1;
+}
+
+.billingForm input, .billingForm select {
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.checkoutRight {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  height: fit-content;
+}
+
+.checkoutRight h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.orderSummaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.orderSummaryTable td {
+  padding: 10px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.paymentOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.paymentOptionLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.paymentOptionLabel span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.paymentOptionLabel p {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.placeOrderBtn {
+  width: 100%;
+  padding: 16px;
+  background: #1b1b1b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.placeOrderBtn:hover {
+  background: #333;
+}
+
+@media screen and (max-width: 900px) {
+  .checkoutPageSection {
+    padding: 20px 15px;
+  }
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+  .billingForm .row {
+    flex-direction: column;
+  }
+}

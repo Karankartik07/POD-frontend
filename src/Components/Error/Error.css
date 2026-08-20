@@ -5,7 +5,7 @@
   align-items: center;
   gap: 10px;
   height: 620px;
-  background-image: url("../../Assets/pattern_bg.png");
+  background-image: url('https://res.cloudinary.com/usn1yap2/image/upload/v1787230549/pod_assets/pattern_bg.png');
   background-size: cover;
   background-position: center;
 }
