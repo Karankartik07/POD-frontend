@@ -56,7 +56,7 @@ const WishlistPage = () => {
                   <Link href={`/product?id=${id}`} style={{ textDecoration: "none" }}>
                     <h4>{name}</h4>
                   </Link>
-                  <p>${price}</p>
+                  <p>₹{price}</p>
                   <button className="wishlistAddToCartBtn" onClick={() => handleAddToCart(item)}>
                     Add to Cart
                   </button>

@@ -1,4 +1,13 @@
-const API_BASE_URL = "http://localhost:5001/api";
+const getApiBaseUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
+  if (envUrl) {
+    const trimmed = envUrl.replace(/\/+$/, "");
+    return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  }
+  return "http://localhost:5000/api";
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 const getHeaders = (isJson = true) => {
   const headers = {};
@@ -37,6 +46,18 @@ export const api = {
     request("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password })
+    }),
+
+  loginMobile: (mobile) =>
+    request("/auth/login-mobile", {
+      method: "POST",
+      body: JSON.stringify({ mobile })
+    }),
+
+  verifyMobileOtp: (mobile, otp) =>
+    request("/auth/verify-mobile-otp", {
+      method: "POST",
+      body: JSON.stringify({ mobile, otp })
     }),
 
   register: (name, email, password, mobile = "") =>
@@ -163,8 +184,43 @@ export const api = {
 
   getOrderById: (id) => request(`/orders/${id}`),
 
+  cancelOrder: async (orderId, reason) => {
+    try {
+      return await request(`/orders/${orderId}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason })
+      });
+    } catch (err) {
+      return await request(`/orders/${orderId}`, {
+        method: "PUT",
+        body: JSON.stringify({ orderStatus: "Cancelled", cancelReason: reason })
+      });
+    }
+  },
+
+  requestReturn: async (orderId, returnReason, type = "return") => {
+    try {
+      return await request(`/orders/${orderId}/return`, {
+        method: "POST",
+        body: JSON.stringify({ returnReason, requestType: type })
+      });
+    } catch (err) {
+      const statusText = type === "replacement" ? "Replacement Requested" : "Return Requested";
+      return await request(`/orders/${orderId}`, {
+        method: "PUT",
+        body: JSON.stringify({ orderStatus: statusText, returnReason, requestType: type })
+      });
+    }
+  },
+
   // Coupons API
-  getCoupons: () => request("/coupons")
+  getCoupons: () => request("/coupons"),
+
+  applyCoupon: (code, orderAmount) =>
+    request("/coupons/apply", {
+      method: "POST",
+      body: JSON.stringify({ code, orderAmount })
+    })
 };
 
 export default api;

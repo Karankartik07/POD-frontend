@@ -101,7 +101,7 @@ const CartDrawer = () => {
           <div className="cartDrawerActions">
             {cartItems.length > 0 && (
               <>
-                <Link href="/checkout" onClick={closeCart} className="checkoutBtn">
+                <Link href="/cart" onClick={closeCart} className="checkoutBtn">
                   PROCEED TO CHECKOUT
                 </Link>
                 <Link href="/cart" onClick={closeCart} className="viewCartDrawerBtn">

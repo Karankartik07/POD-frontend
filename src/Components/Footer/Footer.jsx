@@ -35,11 +35,11 @@ const Footer = () => {
               <img src={logo.src || logo} alt="" />
             </div>
 
-            <p>1418 River Drive, Suite 35 Cottonhall, CA 9622 United States</p>
+            <p>A-791, Bandra Reclamation Rd, Mumbai Maharashtra, 400050</p>
 
             <div className="footer_address">
-              <strong> sale@uomo.com </strong>
-              <strong> +1 246-345-0695 </strong>
+              <strong> sale@printmyway.com </strong>
+              <strong> +91 80 7123 4567 </strong>
             </div>
 
             <div className="social_links">
@@ -59,10 +59,10 @@ const Footer = () => {
                   <Link href="/about">About Us</Link>
                 </li>
                 <li>
-                  <Link href="/about">Career</Link>
+                  <Link href="/terms">Terms and Conditions</Link>
                 </li>
                 <li>
-                  <Link href="/terms">Affilates</Link>
+                  <Link href="/privacy">Privacy Policy</Link>
                 </li>
                 <li>
                   <Link href="/blog">Blog</Link>
@@ -70,6 +70,10 @@ const Footer = () => {
                 <li>
                   <Link href="/contact">Contact Us</Link>
                 </li>
+                <li>
+                  <Link href="/shipping">Shipping policy</Link>
+                </li>
+               
               </ul>
             </div>
           </div>
@@ -78,16 +82,17 @@ const Footer = () => {
             <div className="links_container">
               <ul onClick={scrollToTop}>
                 <li>
-                  <Link href="/shop">New Arrivals</Link>
+                  <Link href="/shop?filter=new">New Arrivals</Link>
+                </li>
+               
+                <li>
+                  <Link href="/shop?category=Men">Men</Link>
                 </li>
                 <li>
-                  <Link href="/shop">Accessories</Link>
+                  <Link href="/shop?category=Women">Women</Link>
                 </li>
                 <li>
-                  <Link href="/shop">Men</Link>
-                </li>
-                <li>
-                  <Link href="/shop">Women</Link>
+                  <Link href="/shop?category=Kids">Kids</Link>
                 </li>
                 <li>
                   <Link href="/shop">Shop All</Link>
@@ -103,24 +108,22 @@ const Footer = () => {
                   <Link href="/contact">Customer Service</Link>
                 </li>
                 <li>
-                  <Link href="/login-signup">My Account</Link>
+                  <Link href="/account">My Account</Link>
                 </li>
                 <li>
                   <Link href="/contact">Find a Store</Link>
                 </li>
                 <li>
-                  <Link href="/terms">Legal & Privacy</Link>
+                  <Link href="/privacy">Legal & Privacy</Link>
                 </li>
+                
                 <li>
-                  <Link href="/contact">Contact</Link>
-                </li>
-                <li>
-                  <Link href="/">Gift Card</Link>
+                  <Link href="/customize">Customize Your Product</Link>
                 </li>
               </ul>
             </div>
           </div>
-          <div className="footer_right">
+          {/* <div className="footer_right">
             <h5>Subscribe</h5>
             <p>
               Be the first to get the latest news about trends, promotions, and
@@ -136,7 +139,7 @@ const Footer = () => {
             <div className="paymentIconContainer">
               <img src={paymentIcon.src || paymentIcon} alt="" />
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="footer_bottom">
           <p>

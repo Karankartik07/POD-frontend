@@ -1,5 +1,43 @@
 @import url("https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800&display=swap");
 
+/* Global Component CSS Imports to prevent 404 unstyled FOUC on browser refresh */
+@import "../Components/Header/Navbar.css";
+@import "../Components/Footer/Footer.css";
+@import "../Components/Account/AccountPage.css";
+@import "../Components/About/AboutPage.css";
+@import "../Components/Authentication/LoginSign/LoginSignUp.css";
+@import "../Components/Authentication/Reset/ResetPass.css";
+@import "../Components/Blog/BlogDetails/BlogDetails.css";
+@import "../Components/Blog/BlogList/BlogList.css";
+@import "../Components/CartDrawer/CartDrawer.css";
+@import "../Components/Checkout/CheckoutPage.css";
+@import "../Components/Contact/ContactPage.css";
+@import "../Components/Error/Error.css";
+@import "../Components/Home/Banner/Banner.css";
+@import "../Components/Home/Collection/CollectionBox.css";
+@import "../Components/Home/Deal/DealTimer.css";
+@import "../Components/Home/Hero/HeroSection.css";
+@import "../Components/Home/Instagram/Instagram.css";
+@import "../Components/Home/Limited/LimitedEdition.css";
+@import "../Components/Home/Services/Services.css";
+@import "../Components/Home/Trendy/Trendy.css";
+@import "../Components/PopupBanner/Popup.css";
+@import "../Components/Product/AdditonInfo/AdditionalInfo.css";
+@import "../Components/Product/ProductMain/Product.css";
+@import "../Components/Product/RelatedProducts/RelatedProducts.css";
+@import "../Components/ScrollButton/ScrollToTop.css";
+@import "../Components/Shop/Filters/Filter.css";
+@import "../Components/Shop/ShopDetails/ShopDetails.css";
+@import "../Components/ShoppingCart/ShoppingCart.css";
+@import "../Components/Terms/TermsandConditions.css";
+@import "../Components/WishlistPage/WishlistPage.css";
+@import "../Components/Privacy/PrivacyPage.css";
+@import "../Components/Shipping/ShippingPage.css";
+@import "../Components/Refund/RefundPage.css";
+@import "../Components/CustomerService/CustomerServicePage.css";
+@import "../Components/FindStore/FindStorePage.css";
+@import "../Components/Customize/CustomizePage.css";
+
 * {
   margin: 0;
   padding: 0;
@@ -19,6 +57,8 @@ body {
 }
 
 img {
+  max-width: 100%;
+  height: auto;
   background-color: #eff0f1;
 }
 

@@ -36,27 +36,27 @@ const ContactPage = () => {
         <div className="contactInfo">
           <div className="contactAddress">
             <div className="address">
-              <h3>Store in London</h3>
-              <p>
-                1418 River Drive, Suite 35 Cottonhall, CA 9622
-                <br /> United Kingdom
-              </p>
-              <p>
-                admin@dummymail.com
-                <br />
-                +44 20 7123 4567
-              </p>
-            </div>
-            <div className="address">
               <h3>Store in India</h3>
               <p>
                 A-791, A-791, Bandra Reclamation Rd, Mumbai
                 <br /> Maharashtra
               </p>
               <p>
-                contact@dummymail.com
+                admin@printmyway.com
                 <br />
-                +44 20 7123 4567
+                +91 80 7123 4567
+              </p>
+            </div>
+            <div className="address">
+              <h3>Store in Canada</h3>
+              <p>
+                A-791, A-791, Bandra Reclamation Rd, Toronto
+                <br /> Ontario
+              </p>
+              <p>
+                contact@printmyway.com
+                <br />
+                +1 416 123 4567
               </p>
             </div>
           </div>

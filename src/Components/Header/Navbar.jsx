@@ -66,7 +66,7 @@ const Navbar = () => {
         <div className="logoLinkContainer">
           <div className="logoContainer">
             <Link href="/">
-              <img src={logo.src || logo} alt="Logo" />
+              <img src={logo.src || logo} alt="Logo" style={{ maxWidth: "160px", height: "auto" }} />
             </Link>
           </div>
           <div className="linkContainer">
@@ -156,7 +156,7 @@ const Navbar = () => {
           )}
           <div className="logoContainer">
             <Link href="/">
-              <img src={logo.src || logo} alt="Logo" />
+              <img src={logo.src || logo} alt="Logo" style={{ maxWidth: "160px", height: "auto" }} />
             </Link>
           </div>
           <Link href="/cart">
@@ -191,7 +191,22 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link href="/shop" onClick={toggleMobileMenu}>
-                    SHOP
+                    SHOP ALL
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=Men" onClick={toggleMobileMenu}>
+                    MEN
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=Women" onClick={toggleMobileMenu}>
+                    WOMEN
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/shop?category=Kids" onClick={toggleMobileMenu}>
+                    KIDS
                   </Link>
                 </li>
                 <li>

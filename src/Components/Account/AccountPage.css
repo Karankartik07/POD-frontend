@@ -268,7 +268,7 @@
   color: #333;
 }
 
-.formGroup input {
+.formGroup input, .formGroup select, .formGroup textarea {
   padding: 12px 14px;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -277,7 +277,7 @@
   transition: border-color 0.2s ease;
 }
 
-.formGroup input:focus {
+.formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus {
   border-color: #1b1b1b;
 }
 
@@ -388,21 +388,64 @@
   font-size: 14px;
 }
 
+/* Order History Styling & Filters */
+.orderFilters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.orderFilterBtn {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.orderFilterBtn:hover {
+  border-color: #1b1b1b;
+  color: #1b1b1b;
+}
+
+.orderFilterBtn.active {
+  background: #1b1b1b;
+  color: #fff;
+  border-color: #1b1b1b;
+}
+
 .orderCard {
   border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: border-color 0.2s ease;
+}
+
+.orderCard:hover {
+  border-color: #ccc;
 }
 
 .orderHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.orderIdText {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1b1b1b;
 }
 
 .orderDate {
@@ -412,50 +455,182 @@
 }
 
 .orderBadge {
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: capitalize;
+  display: inline-block;
 }
 
 .orderBadge.confirmed, .orderBadge.delivered {
-  background: #e6f9ed;
-  color: #16a34a;
+  background: #dcfce7;
+  color: #15803d;
 }
 
-.orderBadge.pending {
+.orderBadge.pending, .orderBadge.processing {
   background: #fef9c3;
-  color: #ca8a04;
+  color: #a16207;
 }
 
 .orderBadge.shipped {
   background: #e0f2fe;
-  color: #0284c7;
+  color: #0369a1;
 }
 
-.orderItemsSummary p {
-  font-size: 13px;
-  color: #444;
-  margin-bottom: 4px;
+.orderBadge.cancelled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.orderBadge.return.requested, .orderBadge.replacement.requested {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.orderItemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.orderItemRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.orderItemImg {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f0f0f0;
+}
+
+.orderItemDetail {
+  flex: 1;
+}
+
+.orderItemDetail h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1b1b1b;
+  margin-bottom: 2px;
+}
+
+.orderItemDetail p {
+  font-size: 12px;
+  color: #666;
+}
+
+.orderItemPrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1b1b1b;
 }
 
 .orderFooter {
   display: flex;
   justify-content: space-between;
-  margin-top: 12px;
-  padding-top: 10px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px dashed #eee;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.paymentInfo {
+.orderActionBtns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 8px 16px;
   font-size: 13px;
-  color: #666;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #1b1b1b;
+  background: #1b1b1b;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.totalPriceText {
-  font-size: 15px;
+.actionBtn:hover {
+  background: #333;
+}
+
+.actionBtn.outline {
+  background: #fff;
+  color: #1b1b1b;
+  border-color: #ccc;
+}
+
+.actionBtn.outline:hover {
+  border-color: #1b1b1b;
+  background: #f8f8f8;
+}
+
+.actionBtn.danger {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+.actionBtn.danger:hover {
+  background: #dc2626;
+}
+
+/* Modal Overlay & Card */
+.orderModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.orderModalCard {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 540px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.orderModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+}
+
+.orderModalHeader h4 {
+  font-size: 18px;
   font-weight: 700;
+  color: #1b1b1b;
+}
+
+.closeModalBtn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
 }
 
 @media screen and (max-width: 1024px) {

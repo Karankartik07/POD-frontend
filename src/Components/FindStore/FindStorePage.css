@@ -1,0 +1,201 @@
+.fsPageWrapper {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 40px 16px;
+  font-family: "Jost", sans-serif;
+}
+
+.fsContainer {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.fsBanner {
+  background: linear-gradient(135deg, #c22928 0%, #941918 100%);
+  color: #ffffff;
+  padding: 56px 24px;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(194, 41, 40, 0.15);
+}
+
+.fsBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+.fsBanner h1 {
+  font-size: 38px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #ffffff;
+}
+
+.fsBanner p {
+  color: #fecaca;
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.fsFilters {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.fsFilterBtn {
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.fsFilterBtn.active {
+  background: #ffffff;
+  color: #c22928;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.fsFilterBtn.inactive {
+  background: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+}
+
+.fsFilterBtn.inactive:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.fsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.fsCard {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.fsCardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.fsStoreIcon {
+  width: 46px;
+  height: 46px;
+  background: #fff5f5;
+  color: #c22928;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.fsCardHeader h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.fsCityTag {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.fsDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.fsDetailRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.fsFeatures {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fsFeatureBadge {
+  padding: 4px 8px;
+  background: #fff5f5;
+  color: #941918;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.fsDirectionBtn {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: #0f172a;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+}
+
+.fsDirectionBtn:hover {
+  background: #1e293b;
+}
+
+@media (max-width: 640px) {
+  .fsBanner h1 {
+    font-size: 28px;
+  }
+}

@@ -9,7 +9,43 @@ import { useRouter } from "next/navigation";
 import api from "../../utils/api";
 import toast from "react-hot-toast";
 
-import { FaUser, FaMapMarkerAlt, FaShoppingBag, FaLock, FaEdit, FaCamera, FaSignOutAlt } from "react-icons/fa";
+import {
+  FaUser,
+  FaMapMarkerAlt,
+  FaShoppingBag,
+  FaLock,
+  FaEdit,
+  FaCamera,
+  FaSignOutAlt,
+  FaTimes,
+  FaUndo,
+  FaExchangeAlt,
+  FaCheckCircle,
+  FaSearch,
+} from "react-icons/fa";
+
+const getItemImage = (it) => {
+  if (!it) return "https://res.cloudinary.com/usn1yap2/image/upload/v1787230546/pod_assets/logo.png";
+
+  const candidates = [
+    it.image,
+    it.productImage,
+    it.frontImg,
+    it.mainImage,
+    it.product?.mainImage,
+    it.product?.frontImg,
+    it.product?.image,
+    Array.isArray(it.product?.images) ? it.product.images[0] : null,
+    Array.isArray(it.images) ? it.images[0] : null,
+  ];
+
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c;
+    if (c && typeof c === "object" && c.src) return c.src;
+  }
+
+  return "https://res.cloudinary.com/usn1yap2/image/upload/v1787230546/pod_assets/logo.png";
+};
 
 const AccountPage = () => {
   const auth = useSelector((state) => state.auth);
@@ -38,9 +74,24 @@ const AccountPage = () => {
   const [addrCountry, setAddrCountry] = useState("India");
   const [addrMobile, setAddrMobile] = useState("");
 
-  // Orders state
+  // Orders state & Filters
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [orderFilter, setOrderFilter] = useState("all");
+  const [orderSearchQuery, setOrderSearchQuery] = useState("");
+
+  // Order Details Modal
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Order Action Modals
+  const [cancelModalOrder, setCancelModalOrder] = useState(null);
+  const [cancelReason, setCancelReason] = useState("Changed my mind");
+
+  const [returnModalOrder, setReturnModalOrder] = useState(null);
+  const [requestType, setRequestType] = useState("return"); // "return" or "replacement"
+  const [returnReason, setReturnReason] = useState("Defective / Damaged product");
+  const [returnComments, setReturnComments] = useState("");
+  const [submittingAction, setSubmittingAction] = useState(false);
 
   // Security state
   const [oldPassword, setOldPassword] = useState("");
@@ -168,7 +219,7 @@ const AccountPage = () => {
     try {
       const data = await api.deleteAddress(id);
       if (data.success) {
-        setAddresses(data.data || addresses.filter(a => a._id !== id));
+        setAddresses(data.data || addresses.filter((a) => a._id !== id));
         toast.success("Address deleted");
       }
     } catch (err) {
@@ -211,8 +262,88 @@ const AccountPage = () => {
     }
   };
 
+  const handleCancelOrderSubmit = async (e) => {
+    e.preventDefault();
+    if (!cancelModalOrder) return;
+    setSubmittingAction(true);
+    try {
+      await api.cancelOrder(cancelModalOrder._id, cancelReason);
+      toast.success(`Order #${cancelModalOrder._id} cancelled successfully.`);
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === cancelModalOrder._id
+            ? { ...o, orderStatus: "Cancelled", cancelReason }
+            : o
+        )
+      );
+      setCancelModalOrder(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to cancel order.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const handleReturnSubmit = async (e) => {
+    e.preventDefault();
+    if (!returnModalOrder) return;
+    setSubmittingAction(true);
+    try {
+      const fullReason = `${returnReason}${returnComments ? ` - ${returnComments}` : ""}`;
+      await api.requestReturn(returnModalOrder._id, fullReason, requestType);
+      const successMsg =
+        requestType === "replacement"
+          ? "Replacement request submitted successfully!"
+          : "Return & Refund request submitted successfully!";
+      toast.success(successMsg);
+
+      const updatedStatus =
+        requestType === "replacement" ? "Replacement Requested" : "Return Requested";
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === returnModalOrder._id
+            ? { ...o, orderStatus: updatedStatus, returnReason: fullReason }
+            : o
+        )
+      );
+      setReturnModalOrder(null);
+      setReturnComments("");
+    } catch (err) {
+      toast.error(err.message || "Failed to submit request.");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const filteredOrders = orders.filter((ord) => {
+    const status = (ord.orderStatus || "Confirmed").toLowerCase();
+
+    let matchesTab = true;
+    if (orderFilter === "active") {
+      matchesTab = ["pending", "confirmed", "processing", "shipped"].includes(status);
+    } else if (orderFilter === "delivered") {
+      matchesTab = status === "delivered";
+    } else if (orderFilter === "returns") {
+      matchesTab = status.includes("return") || status.includes("replacement");
+    } else if (orderFilter === "cancelled") {
+      matchesTab = status === "cancelled";
+    }
+
+    let matchesSearch = true;
+    if (orderSearchQuery.trim()) {
+      const q = orderSearchQuery.toLowerCase();
+      const idMatch = String(ord._id).toLowerCase().includes(q);
+      const itemMatch = ord.items && ord.items.some((it) => it.name?.toLowerCase().includes(q));
+      matchesSearch = idMatch || itemMatch;
+    }
+
+    return matchesTab && matchesSearch;
+  });
+
   const userInitials = name
-    ? name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)
+    ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "U";
 
   return (
@@ -434,39 +565,169 @@ const AccountPage = () => {
             </div>
           )}
 
-          {/* Tab 3: Orders */}
+          {/* Tab 3: Order History Dashboard */}
           {activeTab === "orders" && (
             <div>
               <h3 className="accountContentHeading">Order History</h3>
-              {loadingOrders ? (
-                <p>Loading your orders...</p>
-              ) : orders.length > 0 ? (
-                orders.map((ord) => (
-                  <div key={ord._id} className="orderCard">
-                    <div className="orderHeader">
-                      <div>
-                        <strong>Order #{ord._id}</strong>
-                        <p className="orderDate">
-                          Placed on {new Date(ord.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <span className={`orderBadge ${ord.orderStatus || "confirmed"}`}>
-                        {ord.orderStatus || "Confirmed"}
-                      </span>
-                    </div>
-                    <div className="orderItemsSummary">
-                      {ord.items && ord.items.map((it, idx) => (
-                        <p key={idx}>• {it.name} x {it.quantity} (${it.price})</p>
-                      ))}
-                    </div>
-                    <div className="orderFooter">
-                      <span className="paymentInfo">Payment: {ord.paymentMethod} ({ord.paymentStatus})</span>
-                      <strong className="totalPriceText">Total: ${ord.totalAmount}</strong>
-                    </div>
+
+              {/* Order Filter Tabs & Search */}
+              <div style={{ marginBottom: "20px" }}>
+                <div className="orderFilters">
+                  <button
+                    className={`orderFilterBtn ${orderFilter === "all" ? "active" : ""}`}
+                    onClick={() => setOrderFilter("all")}
+                  >
+                    All Orders ({orders.length})
+                  </button>
+                  <button
+                    className={`orderFilterBtn ${orderFilter === "active" ? "active" : ""}`}
+                    onClick={() => setOrderFilter("active")}
+                  >
+                    Active / In-Progress
+                  </button>
+                  <button
+                    className={`orderFilterBtn ${orderFilter === "delivered" ? "active" : ""}`}
+                    onClick={() => setOrderFilter("delivered")}
+                  >
+                    Delivered
+                  </button>
+                  <button
+                    className={`orderFilterBtn ${orderFilter === "returns" ? "active" : ""}`}
+                    onClick={() => setOrderFilter("returns")}
+                  >
+                    Returns & Replacements
+                  </button>
+                  <button
+                    className={`orderFilterBtn ${orderFilter === "cancelled" ? "active" : ""}`}
+                    onClick={() => setOrderFilter("cancelled")}
+                  >
+                    Cancelled
+                  </button>
+                </div>
+
+                <div className="formGroup" style={{ maxWidth: "350px", marginTop: "10px" }}>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      placeholder="Search by Order ID or Product Name..."
+                      value={orderSearchQuery}
+                      onChange={(e) => setOrderSearchQuery(e.target.value)}
+                      style={{ width: "100%", paddingLeft: "36px" }}
+                    />
+                    <FaSearch
+                      style={{
+                        position: "absolute",
+                        left: "12px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#888",
+                      }}
+                    />
                   </div>
-                ))
+                </div>
+              </div>
+
+              {loadingOrders ? (
+                <p className="emptyText">Loading your order history...</p>
+              ) : filteredOrders.length > 0 ? (
+                filteredOrders.map((ord) => {
+                  const status = (ord.orderStatus || "Confirmed").toLowerCase();
+                  const isDelivered = status === "delivered";
+                  const isCancelled = status === "cancelled";
+                  const isReturnRequested = status.includes("return") || status.includes("replacement");
+                  const isActive = ["pending", "confirmed", "processing", "shipped"].includes(status);
+
+                  return (
+                    <div key={ord._id} className="orderCard">
+                      <div className="orderHeader">
+                        <div>
+                          <span className="orderIdText">Order #{ord._id}</span>
+                          <p className="orderDate">
+                            Placed on {new Date(ord.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                        <span className={`orderBadge ${status}`}>
+                          {ord.orderStatus || "Confirmed"}
+                        </span>
+                      </div>
+
+                      {/* Items List with Robust Image Extraction */}
+                      <div className="orderItemsList">
+                        {ord.items &&
+                          ord.items.map((it, idx) => {
+                            const imgSrc = getItemImage(it);
+                            return (
+                              <div key={idx} className="orderItemRow">
+                                <img
+                                  src={imgSrc}
+                                  alt={it.name}
+                                  className="orderItemImg"
+                                />
+                                <div className="orderItemDetail">
+                                  <h5>{it.name}</h5>
+                                  <p>Quantity: {it.quantity}</p>
+                                </div>
+                                <div className="orderItemPrice">₹{it.price * it.quantity}</div>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {/* Order Footer & Action Buttons */}
+                      <div className="orderFooter">
+                        <div>
+                          <span className="paymentInfo">
+                            Payment: {ord.paymentMethod || "COD"} • Mode: {ord.paymentStatus || "Success"}
+                          </span>
+                          <div style={{ marginTop: "4px" }}>
+                            <strong className="totalPriceText">Total: ₹{ord.totalAmount}</strong>
+                          </div>
+                        </div>
+
+                        <div className="orderActionBtns">
+                          {/* Track / Details Modal trigger */}
+                          <button
+                            className="actionBtn outline"
+                            onClick={() => setSelectedOrder(ord)}
+                          >
+                            Track & Details
+                          </button>
+
+                          {/* Cancel Order Action */}
+                          {isActive && (
+                            <button
+                              className="actionBtn danger"
+                              onClick={() => setCancelModalOrder(ord)}
+                            >
+                              Cancel Order
+                            </button>
+                          )}
+
+                          {/* Return / Replacement Action */}
+                          {isDelivered && !isReturnRequested && (
+                            <button
+                              className="actionBtn"
+                              onClick={() => {
+                                setReturnModalOrder(ord);
+                                setRequestType("return");
+                              }}
+                            >
+                              Return / Replace
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
-                <p className="emptyText">No past orders found.</p>
+                <div style={{ textAlign: "center", padding: "40px 0" }}>
+                  <p className="emptyText">No orders found matching your filter.</p>
+                </div>
               )}
             </div>
           )}
@@ -509,6 +770,201 @@ const AccountPage = () => {
           )}
         </div>
       </div>
+
+      {/* MODAL 1: ORDER DETAILS & TRACKING TIMELINE */}
+      {selectedOrder && (
+        <div className="orderModalOverlay">
+          <div className="orderModalCard">
+            <div className="orderModalHeader">
+              <h4>Order Details & Tracking</h4>
+              <button className="closeModalBtn" onClick={() => setSelectedOrder(null)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <div style={{ marginBottom: "15px" }}>
+              <p><strong>Order ID:</strong> #{selectedOrder._id}</p>
+              <p><strong>Date:</strong> {new Date(selectedOrder.createdAt || Date.now()).toLocaleString()}</p>
+              <p><strong>Status:</strong> <span className={`orderBadge ${selectedOrder.orderStatus?.toLowerCase()}`}>{selectedOrder.orderStatus || "Confirmed"}</span></p>
+            </div>
+
+            {/* Delivery Timeline Stepper */}
+            <div style={{ background: "#f9f9f9", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
+              <h5 style={{ fontWeight: "700", marginBottom: "10px", fontSize: "14px" }}>Tracking Timeline</h5>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", textAlign: "center" }}>
+                <div style={{ color: "#16a34a", fontWeight: "700" }}>
+                  <FaCheckCircle size={16} />
+                  <p>Placed</p>
+                </div>
+                <div style={{ color: ["processing", "shipped", "delivered"].includes(selectedOrder.orderStatus?.toLowerCase()) ? "#16a34a" : "#aaa" }}>
+                  <FaCheckCircle size={16} />
+                  <p>Processing</p>
+                </div>
+                <div style={{ color: ["shipped", "delivered"].includes(selectedOrder.orderStatus?.toLowerCase()) ? "#16a34a" : "#aaa" }}>
+                  <FaCheckCircle size={16} />
+                  <p>Shipped</p>
+                </div>
+                <div style={{ color: selectedOrder.orderStatus?.toLowerCase() === "delivered" ? "#16a34a" : "#aaa" }}>
+                  <FaCheckCircle size={16} />
+                  <p>Delivered</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Address */}
+            {selectedOrder.shippingAddress && (
+              <div style={{ marginBottom: "20px", fontSize: "13px" }}>
+                <h5 style={{ fontWeight: "700", marginBottom: "4px" }}>Shipping Address</h5>
+                <p>{selectedOrder.shippingAddress.street}</p>
+                <p>{selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.zipCode}</p>
+                <p>{selectedOrder.shippingAddress.country}</p>
+              </div>
+            )}
+
+            {/* Items */}
+            <div className="orderItemsList">
+              <h5 style={{ fontWeight: "700", fontSize: "14px" }}>Order Items</h5>
+              {selectedOrder.items &&
+                selectedOrder.items.map((it, idx) => {
+                  const imgSrc = getItemImage(it);
+                  return (
+                    <div key={idx} className="orderItemRow">
+                      <img src={imgSrc} alt={it.name} className="orderItemImg" />
+                      <div className="orderItemDetail">
+                        <h5>{it.name}</h5>
+                        <p>Qty: {it.quantity}</p>
+                      </div>
+                      <div className="orderItemPrice">₹{it.price * it.quantity}</div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #eee", paddingTop: "15px", marginTop: "15px", fontWeight: "700" }}>
+              <span>Total Amount</span>
+              <span>₹{selectedOrder.totalAmount}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: CANCEL ORDER REASON */}
+      {cancelModalOrder && (
+        <div className="orderModalOverlay">
+          <div className="orderModalCard">
+            <div className="orderModalHeader">
+              <h4>Cancel Order #{cancelModalOrder._id}</h4>
+              <button className="closeModalBtn" onClick={() => setCancelModalOrder(null)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <form onSubmit={handleCancelOrderSubmit} className="profileForm" style={{ maxWidth: "100%" }}>
+              <div className="formGroup">
+                <label>Select Reason for Cancellation *</label>
+                <select
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  required
+                >
+                  <option value="Changed my mind">Changed my mind</option>
+                  <option value="Ordered wrong size / color">Ordered wrong size / color</option>
+                  <option value="Found a better price elsewhere">Found a better price elsewhere</option>
+                  <option value="Delivery time is too long">Delivery time is too long</option>
+                  <option value="Incorrect shipping address">Incorrect shipping address</option>
+                  <option value="Other">Other reason</option>
+                </select>
+              </div>
+
+              <div className="formButtonGroup" style={{ justifyContent: "flex-end" }}>
+                <button type="button" className="cancelBtn" onClick={() => setCancelModalOrder(null)}>
+                  Keep Order
+                </button>
+                <button type="submit" className="actionBtn danger" disabled={submittingAction}>
+                  {submittingAction ? "Cancelling..." : "Confirm Cancellation"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: RETURN / REPLACEMENT / REFUND REQUEST */}
+      {returnModalOrder && (
+        <div className="orderModalOverlay">
+          <div className="orderModalCard">
+            <div className="orderModalHeader">
+              <h4>Request Return or Replacement</h4>
+              <button className="closeModalBtn" onClick={() => setReturnModalOrder(null)}>
+                <FaTimes />
+              </button>
+            </div>
+
+            <form onSubmit={handleReturnSubmit} className="profileForm" style={{ maxWidth: "100%" }}>
+              <div className="formGroup">
+                <label>What would you like to request? *</label>
+                <div style={{ display: "flex", gap: "20px", margin: "6px 0" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="requestType"
+                      value="return"
+                      checked={requestType === "return"}
+                      onChange={(e) => setRequestType(e.target.value)}
+                    />
+                    <span><FaUndo /> Return & Refund</span>
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="requestType"
+                      value="replacement"
+                      checked={requestType === "replacement"}
+                      onChange={(e) => setRequestType(e.target.value)}
+                    />
+                    <span><FaExchangeAlt /> Replacement Item</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="formGroup">
+                <label>Select Reason *</label>
+                <select
+                  value={returnReason}
+                  onChange={(e) => setReturnReason(e.target.value)}
+                  required
+                >
+                  <option value="Defective / Damaged product">Defective / Damaged product</option>
+                  <option value="Size or fit issue">Size or fit issue</option>
+                  <option value="Received wrong item">Received wrong item</option>
+                  <option value="Item not as described">Item not as described</option>
+                  <option value="Quality not as expected">Quality not as expected</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="formGroup">
+                <label>Additional Comments / Issue Details</label>
+                <textarea
+                  rows={4}
+                  placeholder="Describe the issue with your item (e.g. size difference, damaged packaging)..."
+                  value={returnComments}
+                  onChange={(e) => setReturnComments(e.target.value)}
+                />
+              </div>
+
+              <div className="formButtonGroup" style={{ justifyContent: "flex-end" }}>
+                <button type="button" className="cancelBtn" onClick={() => setReturnModalOrder(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="saveBtn" disabled={submittingAction}>
+                  {submittingAction ? "Submitting..." : "Submit Request"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

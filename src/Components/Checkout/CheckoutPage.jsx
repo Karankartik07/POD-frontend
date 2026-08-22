@@ -70,10 +70,11 @@ const CheckoutPage = () => {
     try {
       const orderPayload = {
         items: cartItems.map((it) => ({
-          product: it.productId || it.id,
-          name: it.name,
-          price: it.price,
+          product: it.productId || it.productID || it.id || it._id,
+          name: it.name || it.productName,
+          price: it.price || it.productPrice || it.salePrice,
           quantity: it.quantity,
+          image: it.image || it.frontImg?.src || it.frontImg || it.mainImage || (it.images && it.images[0]) || "",
         })),
         shippingAddress: {
           street: finalStreet,
@@ -218,20 +219,20 @@ const CheckoutPage = () => {
                 {cartItems.map((item) => (
                   <tr key={item.id}>
                     <td>{item.name} x {item.quantity}</td>
-                    <td style={{ textAlign: "right" }}>${item.price * item.quantity}</td>
+                    <td style={{ textAlign: "right" }}>₹{item.price * item.quantity}</td>
                   </tr>
                 ))}
                 <tr>
                   <td><strong>Subtotal</strong></td>
-                  <td style={{ textAlign: "right" }}>${subtotal.toFixed(2)}</td>
+                  <td style={{ textAlign: "right" }}>₹{subtotal.toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td>Shipping</td>
-                  <td style={{ textAlign: "right" }}>${shipping.toFixed(2)}</td>
+                  <td style={{ textAlign: "right" }}>₹{shipping.toFixed(2)}</td>
                 </tr>
                 <tr style={{ fontSize: "16px", fontWeight: "bold" }}>
                   <td>Total</td>
-                  <td style={{ textAlign: "right" }}>${totalAmount.toFixed(2)}</td>
+                  <td style={{ textAlign: "right" }}>₹{totalAmount.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>

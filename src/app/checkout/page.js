@@ -1,5 +1,5 @@
-import CheckoutPage from "../../Components/Checkout/CheckoutPage";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <CheckoutPage />;
+  redirect("/cart");
 }

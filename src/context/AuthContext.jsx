@@ -105,15 +105,7 @@ export function AuthProvider({ children }) {
   const loginMobile = async (mobile) => {
     setError(null);
     try {
-      const res = await fetch("http://localhost:5001/api/auth/login-mobile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to send mobile OTP");
-      }
+      const data = await api.loginMobile(mobile);
       return data;
     } catch (err) {
       setError(err.message);
@@ -125,15 +117,7 @@ export function AuthProvider({ children }) {
   const verifyMobileOtp = async (mobile, otp) => {
     setError(null);
     try {
-      const res = await fetch("http://localhost:5001/api/auth/verify-mobile-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, otp }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Invalid OTP code");
-      }
+      const data = await api.verifyMobileOtp(mobile, otp);
       const uData = data.data || data;
       const authToken = uData.token;
       setUser(uData);

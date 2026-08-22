@@ -109,26 +109,49 @@ const Filter = ({
             >
               All Categories
             </p>
-            {loadingCategories ? (
-              <p style={{ fontSize: "13px", color: "#888" }}>Loading categories...</p>
-            ) : categories.length > 0 ? (
-              categories.map((cat) => (
+
+            {/* Men, Women, Kids quick category filters */}
+            {["Men", "Women", "Kids"].map((catName) => {
+              const isSelected = selectedCategory?.toLowerCase() === catName.toLowerCase();
+              return (
                 <p
-                  key={cat._id}
-                  onClick={() => setSelectedCategory(cat._id)}
+                  key={catName}
+                  onClick={() => setSelectedCategory(catName)}
                   style={{
-                    fontWeight: selectedCategory === cat._id ? "700" : "400",
-                    color: selectedCategory === cat._id ? "#1b1b1b" : "#555",
+                    fontWeight: isSelected ? "700" : "400",
+                    color: isSelected ? "#c22928" : "#555",
                     cursor: "pointer",
                     padding: "4px 0",
                   }}
                 >
-                  {cat.name}
+                  {catName}
                 </p>
-              ))
-            ) : (
-              <p style={{ fontSize: "13px", color: "#888" }}>No categories found</p>
-            )}
+              );
+            })}
+
+            {loadingCategories ? (
+              <p style={{ fontSize: "13px", color: "#888" }}>Loading backend categories...</p>
+            ) : categories.length > 0 ? (
+              categories
+                .filter((cat) => !["men", "women", "kids"].includes(cat.name?.toLowerCase()))
+                .map((cat) => {
+                  const isSelected = selectedCategory === cat._id || selectedCategory === cat.name;
+                  return (
+                    <p
+                      key={cat._id}
+                      onClick={() => setSelectedCategory(cat._id)}
+                      style={{
+                        fontWeight: isSelected ? "700" : "400",
+                        color: isSelected ? "#c22928" : "#555",
+                        cursor: "pointer",
+                        padding: "4px 0",
+                      }}
+                    >
+                      {cat.name}
+                    </p>
+                  );
+                })
+            ) : null}
           </AccordionDetails>
         </Accordion>
       </div>
