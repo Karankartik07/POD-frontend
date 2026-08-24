@@ -6,15 +6,16 @@ import Zoom from "@mui/material/Zoom";
 
 import { useDispatch, useSelector } from "react-redux";
 import { addToWishList, removeFromWishList } from "../../../Features/Wishlist/wishListSlice";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
 import { getProductStockStatus } from "../../../utils/productUtils";
 
 import { GoChevronLeft, GoChevronRight } from "react-icons/go";
 import { FaStar } from "react-icons/fa";
-import { FiHeart } from "react-icons/fi";
+import { FiHeart, FiRefreshCw } from "react-icons/fi";
 import { PiShareNetworkLight } from "react-icons/pi";
+import { BiCustomize } from "react-icons/bi";
 
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -23,8 +24,10 @@ import api from "../../../utils/api";
 import "./Product.css";
 
 const Product = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams?.get("id");
+  const autoCustomize = searchParams?.get("customize");
 
   const [productData, setProductData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,11 +39,17 @@ const Product = () => {
   const [selectSize, setSelectSize] = useState("");
   const [highlightedColor, setHighlightedColor] = useState("");
 
+  // Customizer plugin states
+  const [customizerEnabled, setCustomizerEnabled] = useState(false);
+  const [customizerId, setCustomizerId] = useState(null);
+  const [designLoading, setDesignLoading] = useState(false);
+
   const dispatch = useDispatch();
   const { cartItems, addToCart, openCart } = useCart();
   const { user } = useAuth();
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
+  // Fetch Product Details
   useEffect(() => {
     async function fetchProduct() {
       if (productId) {
@@ -68,7 +77,148 @@ const Product = () => {
     fetchProduct();
   }, [productId]);
 
-  // Dynamic Sizes derivation (Strictly DB data, no static fallback)
+  // Fetch customizer product ID mapping
+  useEffect(() => {
+    async function fetchCustomizerProducts() {
+      if (!productId) return;
+      try {
+        const res = await fetch("https://backend.krcustomizer.com/api/layerdesigns/custom/kartik1234");
+        if (res.ok) {
+          const data = await res.json();
+          const matched = data.find(
+            (item) =>
+              String(item.customproductId) === String(productId) ||
+              String(item.productId) === String(productId) ||
+              String(item.id) === String(productId)
+          );
+          if (matched) {
+            setCustomizerId(matched.productId);
+          } else {
+            setCustomizerId(data[0]?.productId || productId);
+          }
+        }
+      } catch (err) {
+        console.warn("Error fetching customizer product mapping:", err);
+        setCustomizerId(productId);
+      }
+    }
+    fetchCustomizerProducts();
+  }, [productId]);
+
+  // Auto-enable customizer if search param `customize=true`
+  useEffect(() => {
+    if (autoCustomize === "true") {
+      setCustomizerEnabled(true);
+    }
+  }, [autoCustomize]);
+
+  // Mount customizer plugin when enabled
+  useEffect(() => {
+    if (!customizerEnabled) return;
+    const currentHash = "kartik1234";
+    if (typeof window.mountProductCustomizer === "function") {
+      try {
+        window.mountProductCustomizer("#customizer-root", {
+          productId: customizerId || productId,
+          storeHash: currentHash,
+          // currency: "INR",
+          // productQty: quantity,
+        });
+      } catch (e) {
+        console.error("Mount product customizer error:", e);
+      }
+    } 
+  }, [customizerEnabled, customizerId, productId]);
+
+  // MutationObserver for customizer plugin buttons (.kr-close-button and .kr-addtocart-custom)
+  useEffect(() => {
+    if (!customizerEnabled) return;
+
+    const observer = new MutationObserver(() => {
+      const addToCartBtns = document.querySelectorAll(".kr-addtocart-custom");
+      const closeBtns = document.querySelectorAll(".kr-close-button");
+
+      closeBtns.forEach((btn) => {
+        btn.onclick = () => {
+          setCustomizerEnabled(false);
+          const rootEl = document.querySelector("#customizer-root");
+          if (rootEl) rootEl.innerHTML = "";
+        };
+      });
+
+      addToCartBtns.forEach((btn) => {
+        if (!btn.dataset.listenerAttached) {
+          btn.dataset.listenerAttached = "true";
+
+          btn.addEventListener("click", async () => {
+            try {
+              setDesignLoading(true);
+
+              const designDataLocal = JSON.parse(localStorage.getItem("krDesignData") || "{}");
+              const krDesignId = designDataLocal?.krDesignId;
+
+              let fetchedDesignDetails = null;
+              if (krDesignId) {
+                try {
+                  const res = await fetch(`https://backend.krcustomizer.com/api/product-saved/${krDesignId}`, {
+                    headers: {
+                      Authorization:
+                        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMwLCJzdG9yZUhhc2giOiJ2bDVlNW42ZzR4Iiwicm9sZSI6InN1cGVyYWRtaW4iLCJpYXQiOjE3NTYxMDA5NTgsImV4cCI6MTc1NjE4NzM1OH0.jpl87itv8-s4JIGjgiilD55iHvZtnp3CYzJ7Zkiu3TM",
+                    },
+                  });
+                  if (res.ok) {
+                    fetchedDesignDetails = await res.json();
+                  }
+                } catch (e) {
+                  console.warn("Failed to fetch design details from Shikhar API:", e);
+                }
+              }
+
+              const previewImg =
+                fetchedDesignDetails?.previewUrl ||
+                fetchedDesignDetails?.image ||
+                productData?.mainImage ||
+                (productData?.images && productData?.images[0]) ||
+                "/no-image.png";
+
+              const customCartItem = {
+                ...productData,
+                _id: `custom_${productId}_${Date.now()}`,
+                id: `custom_${productId}_${Date.now()}`,
+                productId: productId,
+                name: `${productData?.name || "Product"} (Customized)`,
+                productName: `${productData?.name || "Product"} (Customized)`,
+                price: Number(productData?.salePrice || productData?.price || 999),
+                productPrice: Number(productData?.salePrice || productData?.price || 999),
+                image: previewImg,
+                mainImage: previewImg,
+                isCustom: true,
+                krDesignId: krDesignId || `DESIGN_${Date.now()}`,
+                designData: fetchedDesignDetails || designDataLocal,
+                quantity: quantity || 1,
+              };
+
+              await addToCart(customCartItem, quantity || 1);
+              toast.success("Custom design added to cart!");
+              setCustomizerEnabled(false);
+              if (openCart) openCart();
+              router.push("/cart");
+            } catch (err) {
+              console.error("Error adding custom design to cart:", err);
+              toast.error("Failed to add custom design to cart");
+            } finally {
+              setDesignLoading(false);
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [customizerEnabled, customizerId, productId, productData, quantity, addToCart, openCart, router]);
+
+  // Dynamic Sizes derivation
   const dynamicSizes = useMemo(() => {
     if (!productData) return [];
     if (productData.sizes && Array.isArray(productData.sizes) && productData.sizes.length > 0) {
@@ -81,7 +231,7 @@ const Product = () => {
     return [];
   }, [productData]);
 
-  // Dynamic Colors derivation (Strictly DB data, no static fallback)
+  // Dynamic Colors derivation
   const dynamicColors = useMemo(() => {
     if (!productData) return [];
     if (productData.colorImages && Array.isArray(productData.colorImages) && productData.colorImages.length > 0) {
@@ -199,16 +349,30 @@ const Product = () => {
   const sku = productData.sku || "N/A";
   const categoryName = productData.category?.name || "Handcrafted";
 
-  // Dynamic Rating calculation
   const reviewCount = productData.numReviews || (productData.reviews ? productData.reviews.length : 0);
-  const calcRating = productData.rating || (productData.reviews && productData.reviews.length > 0
-    ? Math.round(productData.reviews.reduce((a, b) => a + b.rating, 0) / productData.reviews.length)
-    : 5);
+  const calcRating =
+    productData.rating ||
+    (productData.reviews && productData.reviews.length > 0
+      ? Math.round(productData.reviews.reduce((a, b) => a + b.rating, 0) / productData.reviews.length)
+      : 5);
 
   const mainDisplayImg = productImg[currentImg] || productData.mainImage || (productData.images && productData.images[0]) || "";
 
   return (
     <>
+      {/* Saving / Processing Spinner Overlay */}
+      {designLoading && (
+        <div className="custOverlaySpinner">
+          <div className="custSpinnerBox">
+            <FiRefreshCw className="custSpinIcon" />
+            <p>Saving custom design & updating cart...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen KRCustomizer Modal Root */}
+      {customizerEnabled && <div id="customizer-root"></div>}
+
       <div className="productSection">
         <div className="productShowCase">
           <div className="productGallery">
@@ -237,6 +401,7 @@ const Product = () => {
               )}
             </div>
           </div>
+
           <div className="productDetails">
             <div className="productBreadcrumb">
               <div className="breadcrumbLink">
@@ -250,18 +415,14 @@ const Product = () => {
                 </Link>
               </div>
             </div>
+
             <div className="productName">
               <h1>{title}</h1>
             </div>
 
-            {/* Dynamic Stars Rating & Review Count */}
             <div className="productRating">
               {[1, 2, 3, 4, 5].map((star) => (
-                <FaStar
-                  key={star}
-                  color={star <= calcRating ? "#FEC78A" : "#e0e0e0"}
-                  size={12}
-                />
+                <FaStar key={star} color={star <= calcRating ? "#FEC78A" : "#e0e0e0"} size={12} />
               ))}
               <p>({reviewCount} reviews)</p>
             </div>
@@ -269,13 +430,13 @@ const Product = () => {
             <div className="productPrice">
               <h3>₹{price}</h3>
             </div>
+
             <div className="productDescription">
               <p>{description}</p>
             </div>
 
             {(dynamicSizes.length > 0 || dynamicColors.length > 0) && (
               <div className="productSizeColor">
-                {/* Dynamic Sizes */}
                 {dynamicSizes.length > 0 && (
                   <div className="productSize">
                     <p>Sizes</p>
@@ -297,7 +458,6 @@ const Product = () => {
                   </div>
                 )}
 
-                {/* Dynamic Colors */}
                 {dynamicColors.length > 0 && (
                   <div className="productColor">
                     <p>Color</p>
@@ -312,15 +472,10 @@ const Product = () => {
                           arrow
                         >
                           <button
-                            className={
-                              highlightedColor === colorObj.value ? "highlighted" : ""
-                            }
+                            className={highlightedColor === colorObj.value ? "highlighted" : ""}
                             style={{
                               backgroundColor: colorObj.value || "#222222",
-                              border:
-                                highlightedColor === colorObj.value
-                                  ? "2px solid #000"
-                                  : "1px solid #ccc",
+                              border: highlightedColor === colorObj.value ? "2px solid #000" : "1px solid #ccc",
                               padding: "10px",
                               margin: "5px",
                               borderRadius: "50%",
@@ -339,46 +494,52 @@ const Product = () => {
             <div className="productCartQuantity">
               <div className="productQuantity">
                 <button onClick={decrement}>-</button>
-                <input
-                  type="text"
-                  value={quantity}
-                  onChange={handleInputChange}
-                />
+                <input type="text" value={quantity} onChange={handleInputChange} />
                 <button onClick={increment}>+</button>
               </div>
 
-              {/* Action Button: View Cart / Out of Stock / Add to Cart */}
-              <div className="productCartBtn">
-                {stockStatus.isAlreadyInCart ? (
-                  <Link
-                    href="/cart"
-                    style={{
-                      display: "block",
-                      padding: "14px 28px",
-                      background: "#16a34a",
-                      color: "#fff",
-                      textDecoration: "none",
-                      borderRadius: "4px",
-                      fontWeight: "600",
-                      textAlign: "center",
-                    }}
-                  >
-                    View Cart
-                  </Link>
-                ) : stockStatus.isOutOfStock ? (
-                  <button
-                    disabled
-                    style={{
-                      background: "#e5e5e5",
-                      color: "#999",
-                      cursor: "not-allowed",
-                    }}
-                  >
-                    Out of Stock
-                  </button>
-                ) : (
-                  <button onClick={handleAddToCart}>Add to Cart</button>
-                )}
+              {/* Action Buttons Group: Customize & Add to Cart */}
+              <div className="productCartBtnGroup">
+                <button
+                  type="button"
+                  className="customizeBtn"
+                  onClick={() => setCustomizerEnabled(true)}
+                >
+                  <BiCustomize size={18} /> Customize
+                </button>
+
+                <div className="productCartBtn">
+                  {stockStatus.isAlreadyInCart ? (
+                    <Link
+                      href="/cart"
+                      style={{
+                        display: "block",
+                        padding: "18px 32px",
+                        background: "#16a34a",
+                        color: "#fff",
+                        textDecoration: "none",
+                        borderRadius: "4px",
+                        fontWeight: "600",
+                        textAlign: "center",
+                      }}
+                    >
+                      View Cart
+                    </Link>
+                  ) : stockStatus.isOutOfStock ? (
+                    <button
+                      disabled
+                      style={{
+                        background: "#e5e5e5",
+                        color: "#999",
+                        cursor: "not-allowed",
+                      }}
+                    >
+                      Out of Stock
+                    </button>
+                  ) : (
+                    <button onClick={handleAddToCart}>Add to Cart</button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -397,10 +558,12 @@ const Product = () => {
 
             <div className="productTags">
               <p>
-                <span>SKU: </span>{sku}
+                <span>SKU: </span>
+                {sku}
               </p>
               <p>
-                <span>CATEGORY: </span>{categoryName}
+                <span>CATEGORY: </span>
+                {categoryName}
               </p>
               <p>
                 <span>TAGS: </span>apparel, fashion, print-on-demand

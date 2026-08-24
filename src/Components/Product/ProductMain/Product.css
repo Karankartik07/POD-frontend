@@ -270,7 +270,7 @@
 }
 
 .productCartBtn button {
-  padding: 20px 110px;
+  padding: 20px 60px;
   background-color: black;
   color: white;
   font-weight: 600;
@@ -278,6 +278,36 @@
   border: none;
   cursor: pointer;
   white-space: nowrap;
+  border-radius: 4px;
+}
+
+.productCartBtnGroup {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.customizeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 18px 32px;
+  background-color: #3559C7;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.customizeBtn:hover {
+  background-color: #2542a3;
 }
 
 .productWishShare {

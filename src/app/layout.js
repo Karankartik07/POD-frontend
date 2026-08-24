@@ -1,3 +1,4 @@
+import Script from "next/script";
 import "./globals.css";
 import Providers from "./providers";
 import Navbar from "../Components/Header/Navbar";
@@ -27,6 +28,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://app.krcustomizer.com/scripts/bigcommerce/product.js"
+          strategy="beforeInteractive"
+        />
+        <Script
+          src="https://front.krcustomizer.com/bc-app/bc-customiser-app.umd.js"
+          strategy="afterInteractive"
+        />
+      </head>
       <body>
         <Providers>
           <ScrollToTop />
@@ -38,3 +49,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

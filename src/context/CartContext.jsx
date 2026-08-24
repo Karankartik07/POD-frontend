@@ -149,8 +149,8 @@ export function CartProvider({ children }) {
       const newItem = {
         id: pId,
         _id: pId,
-        productId: pId,
-        productID: pId,
+        productId: product.productId || pId,
+        productID: product.productId || pId,
         name: pName,
         productName: pName,
         price: pPrice,
@@ -161,18 +161,39 @@ export function CartProvider({ children }) {
         inventory: maxStock,
         productReviews: `${product.numReviews || 0} reviews`,
         product: product,
+        isCustom: product.isCustom || false,
+        krDesignId: product.krDesignId || null,
+        designData: product.designData || null,
       };
 
       if (token) {
         try {
-          await api.addToCart(pId, qty);
+          await api.addToCart(pId, qty, {
+            isCustom: product.isCustom,
+            krDesignId: product.krDesignId,
+            designData: product.designData,
+          });
           await fetchCart();
         } catch (err) {
           console.warn("Add to cart API error:", err);
+          // Fallback to local cart state if backend request fails
+          setCartItems((prev) => {
+            const idx = prev.findIndex((item) => item.id === pId || item._id === pId);
+            let updated;
+            if (idx > -1) {
+              updated = prev.map((item, i) =>
+                i === idx ? { ...item, quantity: item.quantity + qty } : item
+              );
+            } else {
+              updated = [...prev, newItem];
+            }
+            saveToLocal(updated);
+            return updated;
+          });
         }
       } else {
         setCartItems((prev) => {
-          const idx = prev.findIndex((item) => item.id === pId || item._id === pId || item.productId === pId);
+          const idx = prev.findIndex((item) => item.id === pId || item._id === pId);
           let updated;
           if (idx > -1) {
             updated = prev.map((item, i) =>

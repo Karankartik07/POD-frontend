@@ -8,10 +8,13 @@ import api from "../../utils/api";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+import Link from "next/link";
+
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useCart();
   const { user, addresses } = useAuth();
   const router = useRouter();
+  const isLoggedIn = Boolean(user || (typeof window !== "undefined" && localStorage.getItem("token")));
 
   const [selectedAddrId, setSelectedAddrId] = useState(
     addresses.find((a) => a.isDefault)?._id || (addresses[0] ? addresses[0]._id : null)
@@ -46,6 +49,11 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error("Please login to place an order!");
+      router.push("/login-signup?redirect=/checkout");
+      return;
+    }
     if (cartItems.length === 0) {
       toast.error("Your cart is empty!");
       return;
@@ -267,9 +275,20 @@ const CheckoutPage = () => {
               </label>
             </div>
 
-            <button type="submit" className="placeOrderBtn" disabled={placingOrder}>
-              {placingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
-            </button>
+            {!isLoggedIn ? (
+              <div style={{ background: "#fff1f2", border: "1px solid #fda4af", padding: "18px", borderRadius: "8px", marginTop: "15px", textAlign: "center" }}>
+                <p style={{ color: "#9f1239", fontWeight: "700", fontSize: "15px", margin: "0 0 10px 0" }}>
+                  Please login to your account to place an order
+                </p>
+                <Link href="/login-signup" style={{ background: "#e11d48", color: "#ffffff", padding: "10px 24px", borderRadius: "4px", textDecoration: "none", fontWeight: "700", display: "inline-block", fontSize: "14px" }}>
+                  Please Login
+                </Link>
+              </div>
+            ) : (
+              <button type="submit" className="placeOrderBtn" disabled={placingOrder}>
+                {placingOrder ? "PLACING ORDER..." : "PLACE ORDER"}
+              </button>
+            )}
           </div>
         </div>
       </form>

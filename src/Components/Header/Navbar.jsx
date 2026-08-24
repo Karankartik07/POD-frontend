@@ -34,6 +34,11 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -82,6 +87,11 @@ const Navbar = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/customize">
+                  CUSTOMIZE
+                </Link>
+              </li>
+              <li>
                 <Link href="/blog">
                   BLOG
                 </Link>
@@ -121,7 +131,7 @@ const Navbar = () => {
           )}
           <Link href="/cart">
             <Badge
-              badgeContent={cartItems.length === 0 ? "0" : cartItems.length}
+              badgeContent={!isMounted || cartItems.length === 0 ? "0" : cartItems.length}
               color="primary"
               anchorOrigin={{
                 vertical: "bottom",
@@ -133,7 +143,7 @@ const Navbar = () => {
           </Link>
           <Link href="/wishlist">
             <Badge
-              badgeContent={wishlist.items.length === 0 ? "0" : wishlist.items.length}
+              badgeContent={!isMounted || wishlist.items.length === 0 ? "0" : wishlist.items.length}
               color="secondary"
               anchorOrigin={{
                 vertical: "bottom",
@@ -161,7 +171,7 @@ const Navbar = () => {
           </div>
           <Link href="/cart">
             <Badge
-              badgeContent={cart.items.length === 0 ? "0" : cart.items.length}
+              badgeContent={!isMounted || cart.items.length === 0 ? "0" : cart.items.length}
               color="primary"
               anchorOrigin={{
                 vertical: "bottom",
@@ -192,6 +202,11 @@ const Navbar = () => {
                 <li>
                   <Link href="/shop" onClick={toggleMobileMenu}>
                     SHOP ALL
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/customize" onClick={toggleMobileMenu}>
+                    CUSTOMIZE
                   </Link>
                 </li>
                 <li>

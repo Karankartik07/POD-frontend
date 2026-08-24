@@ -17,6 +17,8 @@ import toast from "react-hot-toast";
 const success = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230571/pod_assets/success.png";
 import api from "../../utils/api";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { useRouter } from "next/navigation";
 
 const DEFAULT_COUPONS = [
   { code: "POD50", discount: "50% OFF", description: "Get 50% discount on all items", minOrder: 0, discountType: "percentage", discountValue: 50 },
@@ -27,9 +29,12 @@ const DEFAULT_COUPONS = [
 
 const ShoppingCart = () => {
   const { cartItems, cartLoading, removeFromCart: removeCartContext, updateQuantity: updateQtyContext, clearCart: clearCartContext } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+  const isLoggedIn = Boolean(user || auth.user || (typeof window !== "undefined" && localStorage.getItem("token")));
 
   const [activeTab, setActiveTab] = useState("cartTab1");
   const [payments, setPayments] = useState(false);
@@ -210,6 +215,13 @@ const ShoppingCart = () => {
   };
 
   const handleTabClick = (tab) => {
+    if (tab === "cartTab2" || tab === "cartTab3") {
+      if (!isLoggedIn) {
+        toast.error("Please login to proceed to checkout!");
+        router.push("/login-signup?redirect=/cart");
+        return;
+      }
+    }
     if (tab === "cartTab1" || cartItems.length > 0 || createdOrderNumber) {
       setActiveTab(tab);
     }
@@ -323,6 +335,11 @@ const ShoppingCart = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!isLoggedIn) {
+      toast.error("Please login to place an order!");
+      router.push("/login-signup?redirect=/cart");
+      return;
+    }
     if (!streetAddress || !city || !zipCode) {
       toast.error("Please fill in required shipping address details");
       return;
@@ -837,6 +854,11 @@ const ShoppingCart = () => {
                   </table>
                   <button
                     onClick={() => {
+                      if (!isLoggedIn) {
+                        toast.error("Please login to proceed to checkout!");
+                        router.push("/login-signup?redirect=/cart");
+                        return;
+                      }
                       handleTabClick("cartTab2");
                       window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
@@ -1013,9 +1035,20 @@ const ShoppingCart = () => {
                       </div>
                     </label>
                   </div>
-                  <button onClick={handlePlaceOrder}>
-                    Place Order
-                  </button>
+                  {!isLoggedIn ? (
+                    <div style={{ background: "#fff1f2", border: "1px solid #fda4af", padding: "18px", borderRadius: "8px", marginTop: "15px", textAlign: "center", width: "100%" }}>
+                      <p style={{ color: "#9f1239", fontWeight: "700", fontSize: "15px", margin: "0 0 10px 0" }}>
+                        Please login to your account to place an order
+                      </p>
+                      <Link href="/login-signup" style={{ background: "#e11d48", color: "#ffffff", padding: "10px 24px", borderRadius: "4px", textDecoration: "none", fontWeight: "700", display: "inline-block", fontSize: "14px" }}>
+                        Please Login
+                      </Link>
+                    </div>
+                  ) : (
+                    <button onClick={handlePlaceOrder}>
+                      Place Order
+                    </button>
+                  )}
                 </div>
               </div>
             )}
