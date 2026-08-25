@@ -4,27 +4,58 @@ import React, { useEffect } from "react";
 import "./WishlistPage.css";
 import { useSelector, useDispatch } from "react-redux";
 import { removeFromWishList, fetchWishlistThunk } from "../../Features/Wishlist/wishListSlice";
-import { addToCart } from "../../Features/Cart/cartSlice";
+import { useCart } from "../../context/CartContext";
 import Link from "next/link";
 import { MdOutlineClose } from "react-icons/md";
 import toast from "react-hot-toast";
+import api from "../../utils/api";
 
 const WishlistPage = () => {
   const dispatch = useDispatch();
+  const { addToCart: addToCartContext, openCart } = useCart();
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
   useEffect(() => {
     dispatch(fetchWishlistThunk());
   }, [dispatch]);
 
-  const handleRemove = (product) => {
+  const handleRemove = async (product) => {
+    const pId = product._id || product.productID || product.id;
     dispatch(removeFromWishList(product));
     toast.success("Item removed from wishlist");
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && pId) {
+      try {
+        await api.removeFromWishlist(pId);
+      } catch (e) {
+        console.warn("Wishlist remove API error:", e);
+      }
+    }
   };
 
   const handleAddToCart = (product) => {
-    dispatch(addToCart(product));
+    const pId = product._id || product.productID || product.id;
+    const pName = product.name || product.productName || "Product";
+    const pPrice = product.salePrice || product.productPrice || product.price || 0;
+    const pImg = product.mainImage || product.frontImg?.src || product.frontImg || (product.images && product.images[0]) || "";
+
+    const addPayload = {
+      _id: pId,
+      id: pId,
+      productId: pId,
+      productID: pId,
+      name: pName,
+      productName: pName,
+      price: pPrice,
+      productPrice: pPrice,
+      mainImage: pImg,
+      frontImg: pImg,
+    };
+
+    addToCartContext(addPayload, 1);
     toast.success("Added to cart!");
+    if (openCart) openCart();
   };
 
   return (

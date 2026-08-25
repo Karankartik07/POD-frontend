@@ -50,14 +50,24 @@ const RelatedProducts = () => {
     loadRelated();
   }, [currentId]);
 
-  const handleWishlistClick = (product) => {
-    const isWishlisted = wishlistItems.some((i) => (i._id || i.id) === product._id);
+  const handleWishlistClick = async (product) => {
+    const pId = product._id || product.id || product.productID;
+    const isWishlisted = wishlistItems.some((i) => (i._id || i.id || i.productID) === pId);
     if (isWishlisted) {
       dispatch(removeFromWishList(product));
       toast.success("Removed from wishlist");
     } else {
       dispatch(addToWishList(product));
       toast.success("Added to wishlist!");
+    }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && pId) {
+      try {
+        await api.toggleWishlist(pId);
+      } catch (e) {
+        console.warn("Wishlist toggle API error:", e);
+      }
     }
   };
 

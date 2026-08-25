@@ -3,13 +3,19 @@
 import React, { useEffect, useState } from "react";
 import "./CartDrawer.css";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MdOutlineClose, MdCheckCircle } from "react-icons/md";
+import toast from "react-hot-toast";
 import api from "../../utils/api";
 
 const CartDrawer = () => {
   const { isCartOpen, closeCart, cartItems, addToCart, removeFromCart, updateQuantity } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
   const [recommended, setRecommended] = useState([]);
+  const isLoggedIn = Boolean(user || (typeof window !== "undefined" && localStorage.getItem("token")));
 
   useEffect(() => {
     async function loadRecommended() {
@@ -37,6 +43,17 @@ const CartDrawer = () => {
     const p = item.salePrice || item.price || 0;
     return acc + p * (item.quantity || 1);
   }, 0);
+
+  const handleProceedCheckout = (e) => {
+    e.preventDefault();
+    closeCart();
+    if (!isLoggedIn) {
+      toast.error("Please login to proceed to checkout!");
+      router.push("/login-signup?redirect=/cart");
+    } else {
+      router.push("/cart");
+    }
+  };
 
   return (
     <>
@@ -101,9 +118,9 @@ const CartDrawer = () => {
           <div className="cartDrawerActions">
             {cartItems.length > 0 && (
               <>
-                <Link href="/cart" onClick={closeCart} className="checkoutBtn">
+                <button onClick={handleProceedCheckout} className="checkoutBtn" style={{ width: "100%", border: "none", cursor: "pointer", display: "block" }}>
                   PROCEED TO CHECKOUT
-                </Link>
+                </button>
                 <Link href="/cart" onClick={closeCart} className="viewCartDrawerBtn">
                   VIEW CART PAGE
                 </Link>

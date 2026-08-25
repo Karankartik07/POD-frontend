@@ -12,9 +12,16 @@ import Link from "next/link";
 
 const CheckoutPage = () => {
   const { cartItems, clearCart } = useCart();
-  const { user, addresses } = useAuth();
+  const { user, addresses, authLoading } = useAuth();
   const router = useRouter();
   const isLoggedIn = Boolean(user || (typeof window !== "undefined" && localStorage.getItem("token")));
+
+  React.useEffect(() => {
+    if (!authLoading && !isLoggedIn) {
+      toast.error("Please login to proceed to checkout!");
+      router.push("/login-signup?redirect=/checkout");
+    }
+  }, [isLoggedIn, authLoading, router]);
 
   const [selectedAddrId, setSelectedAddrId] = useState(
     addresses.find((a) => a.isDefault)?._id || (addresses[0] ? addresses[0]._id : null)

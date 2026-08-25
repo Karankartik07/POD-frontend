@@ -220,6 +220,13 @@ export const api = {
     request("/coupons/apply", {
       method: "POST",
       body: JSON.stringify({ code, orderAmount })
+    }),
+
+  // Contact API
+  submitContactMessage: (contactData) =>
+    request("/contact", {
+      method: "POST",
+      body: JSON.stringify(contactData)
     })
 };
 

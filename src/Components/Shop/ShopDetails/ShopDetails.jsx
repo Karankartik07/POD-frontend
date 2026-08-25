@@ -96,7 +96,8 @@ const ShopDetails = () => {
       toast.success("Added to wishlist!");
     }
 
-    if (user) {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (user || token) {
       try {
         await api.toggleWishlist(id);
       } catch (e) {

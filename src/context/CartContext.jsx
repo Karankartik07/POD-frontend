@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { useAuth } from "./AuthContext";
 import { useDispatch } from "react-redux";
 import { setCartItemsRedux } from "../Features/Cart/cartSlice";
+import { syncGuestWishlistThunk } from "../Features/Wishlist/wishListSlice";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 
@@ -91,17 +92,22 @@ export function CartProvider({ children }) {
     }
   };
 
-  // Sync local cart to database upon login
+  // Sync local cart and wishlist to database upon login
   useEffect(() => {
-    const syncLocalCart = async () => {
+    const syncLocalData = async () => {
       if (token && typeof window !== "undefined") {
+        // Sync local cart
         const localCart = localStorage.getItem("vardaan_cart");
         if (localCart) {
           try {
             const items = JSON.parse(localCart);
             if (items && items.length > 0) {
               for (const item of items) {
-                await api.addToCart(item.productId || item.id || item._id, item.quantity);
+                await api.addToCart(item.productId || item.id || item._id, item.quantity, {
+                  isCustom: item.isCustom,
+                  krDesignId: item.krDesignId,
+                  designData: item.designData,
+                });
               }
               localStorage.removeItem("vardaan_cart");
               await fetchCart();
@@ -110,10 +116,19 @@ export function CartProvider({ children }) {
             console.warn("Local cart sync error:", e);
           }
         }
+
+        // Sync local wishlist
+        try {
+          if (dispatch) {
+            dispatch(syncGuestWishlistThunk());
+          }
+        } catch (e) {
+          console.warn("Local wishlist sync error:", e);
+        }
       }
     };
-    syncLocalCart();
-  }, [token, fetchCart]);
+    syncLocalData();
+  }, [token, fetchCart, dispatch]);
 
   const addToCart = useCallback(
     async (product, qty = 1) => {

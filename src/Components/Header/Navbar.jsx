@@ -5,6 +5,7 @@ import "./Navbar.css";
 
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../Features/Auth/authSlice";
+import { fetchWishlistThunk } from "../../Features/Wishlist/wishListSlice";
 
 const logo = "https://res.cloudinary.com/usn1yap2/image/upload/v1787230546/pod_assets/logo.png";
 import Link from "next/link";
@@ -38,7 +39,10 @@ const Navbar = () => {
 
   React.useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (dispatch) {
+      dispatch(fetchWishlistThunk());
+    }
+  }, [dispatch]);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);

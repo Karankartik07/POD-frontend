@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from "react";
 import "./Trendy.css";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../../Features/Cart/cartSlice";
 import { addToWishList, removeFromWishList } from "../../../Features/Wishlist/wishListSlice";
+import { useCart } from "../../../context/CartContext";
 import Link from "next/link";
-import StoreData from "../../../Data/StoreData";
 import { FiHeart } from "react-icons/fi";
 import { FaStar, FaCartPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
@@ -14,6 +13,7 @@ import api from "../../../utils/api";
 
 const Trendy = () => {
   const dispatch = useDispatch();
+  const { addToCart: addToCartContext, openCart } = useCart();
   const [activeTab, setActiveTab] = useState("tab1");
   const [products, setProducts] = useState([]);
   const [wishListMap, setWishListMap] = useState({});
@@ -57,9 +57,9 @@ const Trendy = () => {
     }
   };
 
-  const handleWishlistClick = (product) => {
+  const handleWishlistClick = async (product) => {
     const id = product.productID || product._id;
-    const isWishlisted = wishListMap[id] || wishlistItems.some(i => (i._id || i.productID) === id);
+    const isWishlisted = wishListMap[id] || wishlistItems.some(i => (i._id || i.productID || i.id) === id);
 
     if (isWishlisted) {
       dispatch(removeFromWishList(product));
@@ -70,32 +70,39 @@ const Trendy = () => {
       setWishListMap(prev => ({ ...prev, [id]: true }));
       toast.success("Added to wishlist!");
     }
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (token && id) {
+      try {
+        await api.toggleWishlist(id);
+      } catch (err) {
+        console.warn("Wishlist toggle API error:", err);
+      }
+    }
   };
 
   const handleAddToCart = (product) => {
-    const id = product.productID || product._id;
-    const productInCart = cartItems.find(
-      (item) => (item.productID || item._id) === id
-    );
+    const pId = product.productID || product._id;
+    const pName = product.productName || product.name || "Product";
+    const pPrice = product.productPrice || product.salePrice || product.price || 0;
+    const pImg = product.frontImg?.src || product.frontImg || product.mainImage || (product.images && product.images[0]) || "";
 
-    if (productInCart && productInCart.quantity >= 20) {
-      toast.error("Product limit reached", {
-        duration: 2000,
-        style: {
-          backgroundColor: "#ff4b4b",
-          color: "white",
-        },
-      });
-    } else {
-      dispatch(addToCart(product));
-      toast.success(`Added to cart!`, {
-        duration: 2000,
-        style: {
-          backgroundColor: "#07bc0c",
-          color: "white",
-        },
-      });
-    }
+    const addPayload = {
+      _id: pId,
+      id: pId,
+      productId: pId,
+      productID: pId,
+      name: pName,
+      productName: pName,
+      price: pPrice,
+      productPrice: pPrice,
+      mainImage: pImg,
+      frontImg: pImg,
+    };
+
+    addToCartContext(addPayload, 1);
+    toast.success(`${pName} added to cart!`);
+    if (openCart) openCart();
   };
 
   let displayedProducts = [...products];
