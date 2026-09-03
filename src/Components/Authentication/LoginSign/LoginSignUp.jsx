@@ -162,12 +162,16 @@ const LoginSignUp = () => {
     }
     setSubmitting(true);
     try {
-      const data = await verifyEmailOtp(regEmail, emailOtp);
-      if (data && data.data) {
-        dispatch(setUser(data.data));
-      }
-      toast.success("Email verified successfully! Redirecting to your profile...");
-      router.push("/account");
+      await verifyEmailOtp(regEmail, emailOtp);
+      toast.success("Email verified successfully! Please log in with your credentials.");
+      
+      // Switch user to Login tab and pre-fill email
+      setLoginEmail(regEmail);
+      setLoginPassword("");
+      setLoginMode("email");
+      setOtpSent(false);
+      setEmailOtp("");
+      setActiveTab("tabButton1");
     } catch (err) {
       toast.error(err.message || "Verification code is invalid");
     } finally {

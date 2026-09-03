@@ -56,10 +56,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+main {
+  padding-top: 84px;
+}
+
+@media screen and (max-width: 1200px) {
+  main {
+    padding-top: 78px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  main {
+    padding-top: 57px;
+  }
+}
+
 img {
   max-width: 100%;
   height: auto;
-  background-color: #eff0f1;
+  /* background-color: #eff0f1; */
 }
 
 code {

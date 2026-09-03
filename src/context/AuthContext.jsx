@@ -134,22 +134,13 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Verify Email OTP
+  // Verify Email OTP (Verifies email without logging user in automatically)
   const verifyEmailOtp = async (email, otp) => {
     setError(null);
     try {
       const data = await api.verifyEmail(email, otp);
       if (!data.success) {
         throw new Error(data.message || "Failed to verify email");
-      }
-      if (data.data && data.data.token) {
-        const uData = data.data;
-        setUser(uData);
-        setToken(uData.token);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("token", uData.token);
-          localStorage.setItem("user", JSON.stringify(uData));
-        }
       }
       return data;
     } catch (err) {
